@@ -123,4 +123,4 @@ description: "Tenant critical workloads"
 - PriorityClass を場当たり的に追加し、復旧時に「どれが重要か」が判断できなくなる
 
 ## まとめ / 次に読む
-- 次に読む: 第9章：監視・ログ・アラート設計（/chapters/chapter09/）
+- 次に読む: [第9章：監視・ログ・アラート設計](../chapter09/)

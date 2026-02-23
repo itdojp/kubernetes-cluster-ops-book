@@ -76,4 +76,4 @@ GitOps は「Git を正（source of truth）として、クラスタの状態を
 - ポリシーを一度に厳格化し、現場が迂回策に流れて標準が崩壊する
 
 ## まとめ / 次に読む
-- 次に読む: 付録A：運用チェックリストPack（/appendices/appendix-a/）
+- 次に読む: [付録A：運用チェックリストPack](../../appendices/appendix-a/)
