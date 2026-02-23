@@ -1,0 +1,21 @@
+{
+  "name": "kubernetes-cluster-ops-book",
+  "version": "1.0.0",
+  "description": "Kubernetes クラスタの設計・運用（責任範囲、HA、アップグレード、監視、運用標準、障害対応）を中心に、実務観点で整理する。",
+  "author": "株式会社アイティードゥ",
+  "license": "CC-BY-NC-SA-4.0",
+  "scripts": {
+    "sync": "node scripts/sync-src-to-docs.js",
+    "build": "npm run sync && node scripts/node-build.js",
+    "serve": "cd dist && python3 -m http.server 4000 || python -m http.server 4000",
+    "dev": "npm run build && npm run serve"
+  },
+  "devDependencies": {
+    "gh-pages": "^6.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/itdojp/kubernetes-cluster-ops-book.git"
+  },
+  "homepage": "https://itdojp.github.io/kubernetes-cluster-ops-book"
+}

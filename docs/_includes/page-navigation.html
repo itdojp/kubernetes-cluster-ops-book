@@ -1,0 +1,214 @@
+<!-- Canonical Page Navigation (Previous/Next) -->
+{% comment %}
+Order resolution strategy (first match wins):
+1) site.data.navigation (keys: introduction, chapters, additional, resources, appendices, afterword)
+2) site.pages where layout: book and order exists, sorted by order
+3) Fallback by URL groups sorted by url: /introduction/, /chapters/, /additional/ or /resources/, /appendices/, /afterword/
+{% endcomment %}
+
+{% assign nav_items = nil %}
+{% assign navigation = site.data.navigation %}
+
+{%- comment -%}
+Detect if current page is the top page (root). For project Pages, the
+root is "/<repo>/"; we normalize by stripping site.baseurl. Depending on
+the environment, page.url can be exactly site.baseurl (without trailing
+slash), which becomes an empty string after normalization. If root, we
+suppress rendering of bottom navigation to unify top-page behavior.
+{%- endcomment -%}
+{%- assign _baseurl = site.baseurl | default: '' -%}
+{%- assign _page_url_n = page.url -%}
+{%- if _baseurl and _baseurl != '' -%}
+  {%- assign _page_url_n = _page_url_n | remove_first: _baseurl -%}
+{%- endif -%}
+{%- assign _is_root = false -%}
+{%- if _page_url_n == '/' or _page_url_n == '' -%}
+  {%- assign _is_root = true -%}
+{%- endif -%}
+
+{%- comment -%}
+Build a flattened list from navigation data:
+- `nav_items`: prev/next sequence
+- `data_items`: title lookup for prev/next labels
+
+Some books group chapters as `{ part: "...", items: [...] }`. We flatten one
+level of such grouping so only leaf items (having `path`/`url`) participate.
+{%- endcomment -%}
+{%- assign data_items = "" | split: "|" -%}
+{%- if navigation -%}
+  {%- assign seq = "" | split: "|" -%}
+  {%- assign _nav_sections = "introduction,chapters,additional,resources,appendices,afterword" | split: "," -%}
+  {%- for _sec in _nav_sections -%}
+    {%- assign _items = navigation[_sec] -%}
+    {%- if _items and _items.size > 0 -%}
+      {%- assign _is_grouped = false -%}
+      {%- if _items[0] and _items[0].items -%}
+        {%- assign _is_grouped = true -%}
+      {%- endif -%}
+
+      {%- if _is_grouped -%}
+        {%- assign _flat = "" | split: "|" -%}
+        {%- for _grp in _items -%}
+          {%- if _grp.items -%}
+            {%- assign _flat = _flat | concat: _grp.items -%}
+          {%- endif -%}
+        {%- endfor -%}
+        {%- assign seq = seq | concat: _flat -%}
+      {%- else -%}
+        {%- assign seq = seq | concat: _items -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+
+  {%- assign nav_items = seq -%}
+  {%- assign data_items = seq -%}
+{%- endif -%}
+
+{% if nav_items == nil or nav_items.size == 0 %}
+  {%- assign ordered_pages = site.pages | where: "layout", "book" | where_exp: "p", "p.order" | sort: "order" -%}
+  {% if ordered_pages and ordered_pages.size > 0 %}
+    {% assign nav_items = ordered_pages %}
+  {% endif %}
+{% endif %}
+
+{% if nav_items == nil or nav_items.size == 0 %}
+  {%- assign intro = site.pages | where: "layout", "book" | where_exp: "p", "p.url contains '/introduction/'" | sort: "url" -%}
+  {%- assign chaps = site.pages | where: "layout", "book" | where_exp: "p", "p.url contains '/chapters/'" | sort: "url" -%}
+  {%- assign addtn = site.pages | where: "layout", "book" | where_exp: "p", "p.url contains '/additional/' or p.url contains '/resources/'" | sort: "url" -%}
+  {%- assign appdx = site.pages | where: "layout", "book" | where_exp: "p", "p.url contains '/appendices/'" | sort: "url" -%}
+  {%- assign aftwd = site.pages | where: "layout", "book" | where_exp: "p", "p.url contains '/afterword/'" | sort: "url" -%}
+  {%- assign seq = intro | concat: chaps | concat: addtn | concat: appdx | concat: aftwd -%}
+  {% assign nav_items = seq %}
+{% endif %}
+
+{%- assign current_index = nil -%}
+{%- assign _best_len = 0 -%}
+{%- if nav_items and nav_items.size > 0 -%}
+  {%- comment -%}
+  Resolve current page by "best match" (longest URL match).
+  This avoids prefix/index items ("/", "/chapters/", "/appendices/", etc.)
+  capturing all pages due to `contains`.
+  {%- endcomment -%}
+  {%- for item in nav_items -%}
+    {%- assign item_url = item.path | default: item.url -%}
+    {%- if item_url and item_url != '' -%}
+      {%- assign item_url_n = item_url -%}
+      {%- if _baseurl and _baseurl != '' -%}
+        {%- assign item_url_n = item_url_n | remove_first: _baseurl -%}
+      {%- endif -%}
+      {%- if item_url_n and item_url_n != '' -%}
+        {%- assign _cand_len = item_url_n | size -%}
+        {%- assign _page_len = _page_url_n | size -%}
+        {%- if _page_len >= _cand_len -%}
+          {%- assign _prefix = _page_url_n | slice: 0, _cand_len -%}
+          {%- if _prefix == item_url_n -%}
+            {%- assign _is_boundary = false -%}
+            {%- if _page_len == _cand_len -%}
+              {%- assign _is_boundary = true -%}
+            {%- else -%}
+              {%- assign _next_char = _page_url_n | slice: _cand_len, 1 -%}
+              {%- if _next_char == '/' -%}
+                {%- assign _is_boundary = true -%}
+              {%- endif -%}
+            {%- endif -%}
+
+            {%- if _is_boundary and _cand_len > _best_len -%}
+              {%- assign _best_len = _cand_len -%}
+              {%- assign current_index = forloop.index0 -%}
+            {%- endif -%}
+          {%- endif -%}
+        {%- endif -%}
+      {%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
+
+{%- assign previous_item = nil -%}
+{%- assign next_item = nil -%}
+{%- if current_index != nil -%}
+  {%- assign prev_index = current_index | minus: 1 -%}
+  {%- assign next_index = current_index | plus: 1 -%}
+  {%- if prev_index >= 0 -%}
+    {%- assign previous_item = nav_items[prev_index] -%}
+  {%- endif -%}
+  {%- if next_index < nav_items.size -%}
+    {%- assign next_item = nav_items[next_index] -%}
+  {%- endif -%}
+{%- endif -%}
+
+{% unless _is_root %}
+<nav class="book-navigation" aria-label="Chapter navigation">
+  <div class="chapter-nav">
+    {% if previous_item %}
+      {%- assign prev_url = previous_item.path | default: previous_item.url -%}
+      {%- assign _baseurl = site.baseurl | default: '' -%}
+      {%- assign prev_url_n = prev_url -%}
+      {%- if _baseurl and _baseurl != '' -%}
+        {%- assign prev_url_n = prev_url | remove_first: _baseurl -%}
+      {%- endif -%}
+      {%- assign prev_data = nil -%}
+      {%- if data_items and data_items.size > 0 -%}
+        {%- assign prev_data = data_items | where: "path", prev_url_n | first -%}
+        {%- if prev_data == nil or prev_data == empty -%}
+          {%- assign prev_data = data_items | where: "url", prev_url_n | first -%}
+        {%- endif -%}
+      {%- endif -%}
+      {%- assign prev_page = site.pages | where: "url", prev_url_n | first -%}
+      <a href="{{ prev_url | relative_url }}" class="nav-prev" rel="prev">
+        <span class="arrow" aria-hidden="true">←</span>
+        <span class="label">前へ</span>
+        <span class="title">{{ prev_page.title | default: prev_data.title | default: prev_data.label | default: previous_item.title | default: previous_item.name | default: "前のページ" }}</span>
+      </a>
+    {% else %}
+      <span class="nav-disabled nav-prev">
+        <span class="arrow" aria-hidden="true">←</span>
+        <span class="label">前へ</span>
+      </span>
+    {% endif %}
+
+    <a href="{{ '/' | relative_url }}" class="nav-home">
+      <span class="label">目次へ</span>
+    </a>
+
+    {% if next_item %}
+      {%- assign next_url = next_item.path | default: next_item.url -%}
+      {%- assign _baseurl = site.baseurl | default: '' -%}
+      {%- assign next_url_n = next_url -%}
+      {%- if _baseurl and _baseurl != '' -%}
+        {%- assign next_url_n = next_url | remove_first: _baseurl -%}
+      {%- endif -%}
+      {%- assign next_data = nil -%}
+      {%- if data_items and data_items.size > 0 -%}
+        {%- assign next_data = data_items | where: "path", next_url_n | first -%}
+        {%- if next_data == nil or next_data == empty -%}
+          {%- assign next_data = data_items | where: "url", next_url_n | first -%}
+        {%- endif -%}
+      {%- endif -%}
+      {%- assign next_page = site.pages | where: "url", next_url_n | first -%}
+      <a href="{{ next_url | relative_url }}" class="nav-next" rel="next">
+        <span class="label">次へ</span>
+        <span class="title">{{ next_page.title | default: next_data.title | default: next_data.label | default: next_item.title | default: next_item.name | default: "次のページ" }}</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </a>
+    {% else %}
+      <span class="nav-disabled nav-next">
+        <span class="label">次へ</span>
+        <span class="arrow" aria-hidden="true">→</span>
+      </span>
+    {% endif %}
+  </div>
+</nav>
+{% endunless %}
+
+<style>
+.book-navigation { margin: 2rem 0; padding: 1rem; border-top: 1px solid var(--border-color, #e5e7eb); }
+.chapter-nav { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.nav-prev, .nav-next, .nav-home { display: flex; align-items: center; padding: 0.75rem 1.25rem; background: var(--bg-primary, #fff); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; text-decoration: none; color: inherit; }
+.nav-disabled { opacity: .5; cursor: not-allowed; background: var(--bg-tertiary, #f9fafb); border: 1px solid var(--border-color, #e5e7eb); border-radius: 6px; padding: 0.75rem 1.25rem; display: flex; align-items: center; }
+.nav-prev { flex: 1; }
+.nav-next { flex: 1; justify-content: flex-end; text-align: right; }
+.nav-home { flex: 0 0 auto; justify-content: center; }
+.label { font-weight: 600; margin: 0 .25rem; }
+.title { font-size: .9rem; opacity: .8; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 768px) { .chapter-nav { flex-wrap: wrap; } .nav-prev, .nav-next { flex: 1 1 45%; } .nav-home { flex: 1 1 100%; order: -1; } .title { display: none; } }
+</style>

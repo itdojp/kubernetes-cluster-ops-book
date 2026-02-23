@@ -1,0 +1,43 @@
+introduction:
+  - title: "はじめに"
+    path: "/introduction/"
+
+chapters:
+  - title: "第0章：前提とスコープ"
+    path: "/chapters/chapter00/"
+  - title: "第1章：クラスタ設計の全体像"
+    path: "/chapters/chapter01/"
+  - title: "第2章：コントロールプレーン設計"
+    path: "/chapters/chapter02/"
+  - title: "第3章：etcd設計とバックアップ"
+    path: "/chapters/chapter03/"
+  - title: "第4章：ノード/ランタイム運用"
+    path: "/chapters/chapter04/"
+  - title: "第5章：ネットワーク設計と運用"
+    path: "/chapters/chapter05/"
+  - title: "第6章：ストレージ設計と運用"
+    path: "/chapters/chapter06/"
+  - title: "第7章：認証・認可と基本セキュリティ"
+    path: "/chapters/chapter07/"
+  - title: "第8章：マルチテナントとリソース管理"
+    path: "/chapters/chapter08/"
+  - title: "第9章：監視・ログ・アラート設計"
+    path: "/chapters/chapter09/"
+  - title: "第10章：アップグレード戦略"
+    path: "/chapters/chapter10/"
+  - title: "第11章：障害対応とトラブルシュート"
+    path: "/chapters/chapter11/"
+  - title: "第12章：自動化と運用標準化"
+    path: "/chapters/chapter12/"
+
+appendices:
+  - title: "付録A：運用チェックリストPack"
+    path: "/appendices/appendix-a/"
+  - title: "付録B：トラブルシュートフロー集"
+    path: "/appendices/appendix-b/"
+  - title: "付録C：参考リンク集"
+    path: "/appendices/appendix-c/"
+
+afterword:
+  - title: "あとがき"
+    path: "/afterword/"

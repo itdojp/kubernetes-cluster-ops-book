@@ -1,0 +1,206 @@
+{
+  "title": "Kubernetesクラスタ設計・運用実践ガイド",
+  "description": "Kubernetes クラスタの設計・運用（責任範囲、HA、アップグレード、監視、運用標準、障害対応）を中心に、実務観点で整理する。",
+  "author": "株式会社アイティードゥ",
+  "version": "1.0.0",
+  "language": "ja",
+  "license": "CC-BY-NC-SA-4.0",
+  "repository": {
+    "url": "https://github.com/itdojp/kubernetes-cluster-ops-book.git",
+    "branch": "main"
+  },
+  "homepage": "https://itdojp.github.io/kubernetes-cluster-ops-book/",
+  "ux": {
+    "profile": "B",
+    "modules": {
+      "quickStart": false,
+      "readingGuide": false,
+      "checklistPack": true,
+      "troubleshootingFlow": true,
+      "conceptMap": false,
+      "figureIndex": true,
+      "legalNotice": false,
+      "glossary": false
+    }
+  },
+  "structure": {
+    "index": {
+      "id": "index",
+      "title": "Kubernetesクラスタ設計・運用実践ガイド",
+      "order": 0,
+      "srcPath": "src/index.md",
+      "docsPath": "docs/index.md",
+      "permalink": "/"
+    },
+    "introduction": {
+      "id": "introduction",
+      "title": "はじめに",
+      "description": "本書の目的・対象・前提・読み方",
+      "order": 1,
+      "srcPath": "src/introduction/index.md",
+      "docsPath": "docs/introduction/index.md",
+      "navPath": "/introduction/"
+    },
+    "chapters": [
+      {
+        "id": "chapter00",
+        "title": "第0章：前提とスコープ",
+        "description": "「入門書の理解事項」「本書で扱う/扱わない」を明確化",
+        "order": 2,
+        "srcPath": "src/chapters/chapter00/index.md",
+        "docsPath": "docs/chapters/chapter00/index.md",
+        "navPath": "/chapters/chapter00/"
+      },
+      {
+        "id": "chapter01",
+        "title": "第1章：クラスタ設計の全体像",
+        "description": "責任範囲、要件（SLO/可用性/セキュリティ）、設計の論点整理",
+        "order": 3,
+        "srcPath": "src/chapters/chapter01/index.md",
+        "docsPath": "docs/chapters/chapter01/index.md",
+        "navPath": "/chapters/chapter01/"
+      },
+      {
+        "id": "chapter02",
+        "title": "第2章：コントロールプレーン設計",
+        "description": "API Server/Controller/Scheduler の要点、HA構成、運用観点",
+        "order": 4,
+        "srcPath": "src/chapters/chapter02/index.md",
+        "docsPath": "docs/chapters/chapter02/index.md",
+        "navPath": "/chapters/chapter02/"
+      },
+      {
+        "id": "chapter03",
+        "title": "第3章：etcd設計とバックアップ",
+        "description": "耐障害、バックアップ/リストア、運用の注意点",
+        "order": 5,
+        "srcPath": "src/chapters/chapter03/index.md",
+        "docsPath": "docs/chapters/chapter03/index.md",
+        "navPath": "/chapters/chapter03/"
+      },
+      {
+        "id": "chapter04",
+        "title": "第4章：ノード/ランタイム運用",
+        "description": "kubelet、CRI（containerd/CRI-O等）、OS設計、ノード保守",
+        "order": 6,
+        "srcPath": "src/chapters/chapter04/index.md",
+        "docsPath": "docs/chapters/chapter04/index.md",
+        "navPath": "/chapters/chapter04/"
+      },
+      {
+        "id": "chapter05",
+        "title": "第5章：ネットワーク設計と運用",
+        "description": "CNI、Service/Ingress/DNSの運用、NetworkPolicyの入口",
+        "order": 7,
+        "srcPath": "src/chapters/chapter05/index.md",
+        "docsPath": "docs/chapters/chapter05/index.md",
+        "navPath": "/chapters/chapter05/"
+      },
+      {
+        "id": "chapter06",
+        "title": "第6章：ストレージ設計と運用",
+        "description": "CSI、バックアップ、Stateful運用の論点",
+        "order": 8,
+        "srcPath": "src/chapters/chapter06/index.md",
+        "docsPath": "docs/chapters/chapter06/index.md",
+        "navPath": "/chapters/chapter06/"
+      },
+      {
+        "id": "chapter07",
+        "title": "第7章：認証・認可と基本セキュリティ",
+        "description": "RBAC/ServiceAccount、PodSecurity（PSS）、最小権限",
+        "order": 9,
+        "srcPath": "src/chapters/chapter07/index.md",
+        "docsPath": "docs/chapters/chapter07/index.md",
+        "navPath": "/chapters/chapter07/"
+      },
+      {
+        "id": "chapter08",
+        "title": "第8章：マルチテナントとリソース管理",
+        "description": "Namespace設計、Quota/LimitRange、PriorityClass",
+        "order": 10,
+        "srcPath": "src/chapters/chapter08/index.md",
+        "docsPath": "docs/chapters/chapter08/index.md",
+        "navPath": "/chapters/chapter08/"
+      },
+      {
+        "id": "chapter09",
+        "title": "第9章：監視・ログ・アラート設計",
+        "description": "SLI/SLO、メトリクス/ログの設計観点（ツール詳細は最小）",
+        "order": 11,
+        "srcPath": "src/chapters/chapter09/index.md",
+        "docsPath": "docs/chapters/chapter09/index.md",
+        "navPath": "/chapters/chapter09/"
+      },
+      {
+        "id": "chapter10",
+        "title": "第10章：アップグレード戦略",
+        "description": "バージョンスキュー、計画、ロールバック、検証",
+        "order": 12,
+        "srcPath": "src/chapters/chapter10/index.md",
+        "docsPath": "docs/chapters/chapter10/index.md",
+        "navPath": "/chapters/chapter10/"
+      },
+      {
+        "id": "chapter11",
+        "title": "第11章：障害対応とトラブルシュート",
+        "description": "典型事象の切り分け、Runbook/Playbookの型",
+        "order": 13,
+        "srcPath": "src/chapters/chapter11/index.md",
+        "docsPath": "docs/chapters/chapter11/index.md",
+        "navPath": "/chapters/chapter11/"
+      },
+      {
+        "id": "chapter12",
+        "title": "第12章：自動化と運用標準化",
+        "description": "GitOps/IaC、ポリシー、変更管理、標準の作り方",
+        "order": 14,
+        "srcPath": "src/chapters/chapter12/index.md",
+        "docsPath": "docs/chapters/chapter12/index.md",
+        "navPath": "/chapters/chapter12/"
+      }
+    ],
+    "appendices": [
+      {
+        "id": "appendix-a",
+        "title": "付録A：運用チェックリストPack",
+        "description": "アップグレード/バックアップ/日次点検のチェックリスト雛形",
+        "order": 15,
+        "srcPath": "src/appendices/appendix-a/index.md",
+        "docsPath": "docs/appendices/appendix-a/index.md",
+        "navPath": "/appendices/appendix-a/"
+      },
+      {
+        "id": "appendix-b",
+        "title": "付録B：トラブルシュートフロー集",
+        "description": "よくある障害のフロー雛形（最初は目次＋プレースホルダでも可）",
+        "order": 16,
+        "srcPath": "src/appendices/appendix-b/index.md",
+        "docsPath": "docs/appendices/appendix-b/index.md",
+        "navPath": "/appendices/appendix-b/"
+      },
+      {
+        "id": "appendix-c",
+        "title": "付録C：参考リンク集",
+        "description": "公式Docs・周辺ツール・設計資料",
+        "order": 17,
+        "srcPath": "src/appendices/appendix-c/index.md",
+        "docsPath": "docs/appendices/appendix-c/index.md",
+        "navPath": "/appendices/appendix-c/"
+      }
+    ],
+    "afterword": {
+      "id": "afterword",
+      "title": "あとがき",
+      "description": "まとめ・次の発展（セキュリティ/プラットフォーム/運用高度化）",
+      "order": 18,
+      "srcPath": "src/afterword/index.md",
+      "docsPath": "docs/afterword/index.md",
+      "navPath": "/afterword/"
+    }
+  },
+  "shared": {
+    "version": "3.2.2",
+    "lastSync": "2026-02-23T20:54:44Z"
+  }
+}
