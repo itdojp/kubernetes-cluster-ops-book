@@ -8,17 +8,17 @@
 - 変更点（直近のデプロイ/設定変更/アップグレード）を最優先で確認します。
 - 証跡（events/logs/メトリクス）を確保したうえで復旧操作を行います。
 
-## フロー一覧（初期）
-- API Server に到達できない
-- Pod が Pending のまま
-- CoreDNS が不安定（名前解決失敗）
-- Node が NotReady になる
-- etcd の容量不足/レイテンシ上昇
-- イメージ pull 失敗（レジストリ/認証）
-- Ingress 到達性障害（Controller/Service/DNS/TLS）
-- ストレージ I/O の遅延/Volume Attach 失敗
+## フロー一覧（初期） {#flow-index}
+- [API Server に到達できない](#flow-api-server)
+- [Pod が Pending のまま](#flow-pod-pending)
+- [CoreDNS が不安定（名前解決失敗）](#flow-coredns)
+- [Node が NotReady になる](#flow-node-notready)
+- [etcd の容量不足/レイテンシ上昇](#flow-etcd)
+- [イメージ pull 失敗（レジストリ/認証）](#flow-image-pull)
+- [Ingress 到達性障害（Controller/Service/DNS/TLS）](#flow-ingress)
+- [ストレージ I/O の遅延/Volume Attach 失敗](#flow-storage)
 
-## フロー雛形: API Server に到達できない
+## フロー雛形: API Server に到達できない {#flow-api-server}
 
 ### 症状（例）
 - `kubectl get nodes` がタイムアウトする
@@ -52,7 +52,9 @@
 - [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
 - [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
 
-## フロー雛形: Pod が Pending のまま
+[↑ フロー一覧へ戻る](#flow-index)
+
+## フロー雛形: Pod が Pending のまま {#flow-pod-pending}
 
 ### 症状（例）
 - `kubectl -n <ns> get pod` で `Pending` が継続する
@@ -97,7 +99,9 @@
 - [第8章：マルチテナントとリソース管理](../../chapters/chapter08/)
 - [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
 
-## フロー雛形: CoreDNS が不安定（名前解決失敗）
+[↑ フロー一覧へ戻る](#flow-index)
+
+## フロー雛形: CoreDNS が不安定（名前解決失敗） {#flow-coredns}
 
 ### 症状（例）
 - Pod 内で `nslookup`/`dig` がタイムアウト、`SERVFAIL` になる
@@ -137,7 +141,9 @@
 - [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
 - [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
 
-## フロー雛形: Node が NotReady になる
+[↑ フロー一覧へ戻る](#flow-index)
+
+## フロー雛形: Node が NotReady になる {#flow-node-notready}
 
 ### 症状（例）
 - `kubectl get nodes` で `NotReady` になる
@@ -175,7 +181,9 @@
 - [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
 - [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
 
-## フロー雛形: etcd の容量不足/レイテンシ上昇
+[↑ フロー一覧へ戻る](#flow-index)
+
+## フロー雛形: etcd の容量不足/レイテンシ上昇 {#flow-etcd}
 
 ### 症状（例）
 - API のタイムアウトや遅延が増える（`kubectl` が遅い/失敗する）
@@ -214,7 +222,9 @@
 - [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
 - [第10章：アップグレード戦略](../../chapters/chapter10/)
 
-## フロー雛形: イメージ pull 失敗（レジストリ/認証）
+[↑ フロー一覧へ戻る](#flow-index)
+
+## フロー雛形: イメージ pull 失敗（レジストリ/認証） {#flow-image-pull}
 
 ### 症状（例）
 - Pod が `ImagePullBackOff` / `ErrImagePull` になる
@@ -251,7 +261,9 @@
 - [第12章：自動化と運用標準化](../../chapters/chapter12/)
 - [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
 
-## フロー雛形: Ingress 到達性障害（Controller/Service/DNS/TLS）
+[↑ フロー一覧へ戻る](#flow-index)
+
+## フロー雛形: Ingress 到達性障害（Controller/Service/DNS/TLS） {#flow-ingress}
 
 ### 症状（例）
 - 外部からの HTTP(S) が到達しない（タイムアウト、5xx、意図しない 404）
@@ -293,7 +305,9 @@
 - [第10章：アップグレード戦略](../../chapters/chapter10/)
 - [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
 
-## フロー雛形: ストレージ I/O の遅延/Volume Attach 失敗
+[↑ フロー一覧へ戻る](#flow-index)
+
+## フロー雛形: ストレージ I/O の遅延/Volume Attach 失敗 {#flow-storage}
 
 ### 症状（例）
 - Pod が `ContainerCreating` から進まない（Volume Mount で待つ）
@@ -331,3 +345,5 @@
 - [第4章：ノード/ランタイム運用](../../chapters/chapter04/)
 - [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
 - [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
+
+[↑ フロー一覧へ戻る](#flow-index)

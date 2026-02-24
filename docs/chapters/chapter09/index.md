@@ -75,6 +75,10 @@ SLI/SLO はワークロードの指標と直結しますが、プラットフォ
 | etcd | 容量/レイテンシ/バックアップ結果 | 容量逼迫、レイテンシ継続、バックアップ失敗 | Sev1-2 | [付録B](../../appendices/appendix-b/)（etcd）、[第3章](../chapter03/) |
 | Node | Ready/Pressure/再起動 | NotReady、DiskPressure、再起動頻発 | Sev2 | [付録B](../../appendices/appendix-b/)（Node）、[第4章](../chapter04/) |
 | CoreDNS | 失敗率/レイテンシ/欠測 | 失敗率上昇、レイテンシ上昇、欠測 | Sev2-3 | [付録B](../../appendices/appendix-b/)（CoreDNS）、[第5章](../chapter05/) |
+| Ingress Controller | 5xx/レイテンシ/欠測、Controller 健全性 | 到達性低下、5xx 急増、Controller CrashLoop | Sev2 | [付録B](../../appendices/appendix-b/)（Ingress）、[第5章](../chapter05/) |
+| CNI | Pod ネットワーク到達性/欠測、ノード側エラー | Pod 間/Service 到達性低下、IP 枯渇、CNI エラー増加 | Sev2 | [第5章](../chapter05/)、[第11章](../chapter11/) |
+| CSI/Storage | Provision/Attach 失敗、I/O レイテンシ/欠測 | PVC/PV が Pending、Attach 失敗、I/O 劣化 | Sev2 | [付録B](../../appendices/appendix-b/)（ストレージ）、[第6章](../chapter06/) |
+| Scheduler/Controller Manager（自前の場合） | Leader/ヘルス/欠測 | リーダー選出異常、処理遅延、欠測 | Sev2 | [第2章](../chapter02/)、[第11章](../chapter11/) |
 
 ### アラート定義の最小テンプレ
 各アラートは「復旧に繋がる形」で、最低限のメタデータを揃えます。
