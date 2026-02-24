@@ -12,15 +12,29 @@ title: "付録B：トラブルシュートフロー集"
 - まず影響範囲（顧客影響、データ影響、SLO）を確認し、Severity を確定します。
 - 変更点（直近のデプロイ/設定変更/アップグレード）を最優先で確認します。
 - 証跡（events/logs/メトリクス）を確保したうえで復旧操作を行います。
+- Events の表示順が期待どおりでない場合は、`--sort-by=.metadata.creationTimestamp` を試してください（環境により `.lastTimestamp` が期待どおりでない場合があります）。
 
 ## フロー一覧（初期） {#flow-index}
+### Control Plane
 - [API Server に到達できない](#flow-api-server)
-- [Pod が Pending のまま](#flow-pod-pending)
-- [CoreDNS が不安定（名前解決失敗）](#flow-coredns)
-- [Node が NotReady になる](#flow-node-notready)
 - [etcd の容量不足/レイテンシ上昇](#flow-etcd)
+
+### Scheduling / Capacity
+- [Pod が Pending のまま](#flow-pod-pending)
+
+### DNS / Network
+- [CoreDNS が不安定（名前解決失敗）](#flow-coredns)
+
+### Node
+- [Node が NotReady になる](#flow-node-notready)
+
+### Registry
 - [イメージ pull 失敗（レジストリ/認証）](#flow-image-pull)
+
+### Ingress
 - [Ingress 到達性障害（Controller/Service/DNS/TLS）](#flow-ingress)
+
+### Storage
 - [ストレージ I/O の遅延/Volume Attach 失敗](#flow-storage)
 
 ## フロー雛形: API Server に到達できない {#flow-api-server}
@@ -28,6 +42,16 @@ title: "付録B：トラブルシュートフロー集"
 ### 症状（例）
 - `kubectl get nodes` がタイムアウトする
 - API endpoint への疎通が取れない
+
+### 最小コマンドセット
+```bash
+kubectl config current-context
+kubectl cluster-info
+kubectl get nodes
+
+# （環境により）/readyz の参照が許可されない場合があります
+kubectl get --raw='/readyz?verbose'
+```
 
 ### 切り分け（最小）
 1) クライアント側（誤操作/誤接続）を除外します。
@@ -65,6 +89,14 @@ title: "付録B：トラブルシュートフロー集"
 - `kubectl -n <ns> get pod` で `Pending` が継続する
 - `kubectl -n <ns> describe pod <name>` の Events に `FailedScheduling` が出る
 - `Insufficient cpu/memory`、`node(s) had taint`、`0/.. nodes are available` などが出る
+
+### 最小コマンドセット
+```bash
+kubectl -n <ns> get pod
+kubectl -n <ns> describe pod <name>
+kubectl -n <ns> get events --sort-by=.lastTimestamp
+kubectl get nodes -o wide
+```
 
 ### 切り分け（最小）
 まず見る観測ポイント:
@@ -113,6 +145,13 @@ title: "付録B：トラブルシュートフロー集"
 - Service 名（`<svc>.<ns>.svc.cluster.local`）の解決に失敗する
 - CoreDNS Pod が再起動を繰り返す、または高負荷になる
 
+### 最小コマンドセット
+```bash
+kubectl -n kube-system get pod -l k8s-app=kube-dns -o wide
+kubectl -n kube-system logs deploy/coredns --tail=200
+kubectl -n kube-system get events --sort-by=.lastTimestamp
+```
+
 ### 切り分け（最小）
 まず見る観測ポイント:
 - Events/状態: `kubectl -n kube-system get pod -l k8s-app=kube-dns`
@@ -155,6 +194,13 @@ title: "付録B：トラブルシュートフロー集"
 - Node の `DiskPressure/MemoryPressure/PIDPressure` が発生する
 - Pod が Evicted される、またはノード上のワークロードが不安定になる
 
+### 最小コマンドセット
+```bash
+kubectl get nodes -o wide
+kubectl describe node <node>
+kubectl get events -A --sort-by=.lastTimestamp
+```
+
 ### 切り分け（最小）
 まず見る観測ポイント:
 - Node 状態: `kubectl describe node <node>`
@@ -194,6 +240,16 @@ title: "付録B：トラブルシュートフロー集"
 - API のタイムアウトや遅延が増える（`kubectl` が遅い/失敗する）
 - etcd のアラーム（容量/レイテンシ）や警告が出る
 - （自前運用の場合）etcd のディスク使用率が逼迫する
+
+### 最小コマンドセット
+```bash
+# API 側の健全性（環境により権限/到達性が異なります）
+kubectl get --raw='/readyz?verbose'
+
+# 自前 Control Plane の場合（マネージドでは etcd Pod が見えないことがあります）
+kubectl -n kube-system get pod -o wide
+kubectl -n kube-system logs <etcd-pod> --tail=200
+```
 
 ### 切り分け（最小）
 まず見る観測ポイント:
@@ -235,6 +291,14 @@ title: "付録B：トラブルシュートフロー集"
 - Pod が `ImagePullBackOff` / `ErrImagePull` になる
 - Events に `Unauthorized`、`pull access denied`、`TLS handshake timeout` が出る
 
+### 最小コマンドセット
+```bash
+kubectl -n <ns> describe pod <name>
+kubectl -n <ns> get events --sort-by=.lastTimestamp
+kubectl -n <ns> get secret
+kubectl get nodes -o wide
+```
+
 ### 切り分け（最小）
 まず見る観測ポイント:
 - Events: `kubectl -n <ns> describe pod <name>`
@@ -274,6 +338,16 @@ title: "付録B：トラブルシュートフロー集"
 - 外部からの HTTP(S) が到達しない（タイムアウト、5xx、意図しない 404）
 - TLS エラー（証明書不一致、期限切れ、SNI/Secret の不整合）が出る
 - Ingress Controller の Pod/Service が不安定、または LB 側のヘルスチェックが落ちる
+
+### 最小コマンドセット
+```bash
+kubectl -n <ns> get ingress
+kubectl -n <ns> describe ingress <name>
+kubectl -n <ns> get svc,endpointslice
+
+# Ingress Controller の namespace は環境により異なります
+kubectl -n ingress-nginx get pod,svc
+```
 
 ### 切り分け（最小）
 まず見る観測ポイント:
@@ -318,6 +392,13 @@ title: "付録B：トラブルシュートフロー集"
 - Pod が `ContainerCreating` から進まない（Volume Mount で待つ）
 - Events に `FailedAttachVolume` / `FailedMount` / `Multi-Attach error` が出る
 - アプリのレイテンシが悪化し、I/O 待ちが増える
+
+### 最小コマンドセット
+```bash
+kubectl -n <ns> describe pod <name>
+kubectl -n <ns> describe pvc <pvc>
+kubectl get storageclass
+```
 
 ### 切り分け（最小）
 まず見る観測ポイント:
