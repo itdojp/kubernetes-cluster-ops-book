@@ -9,13 +9,25 @@
 - 証跡（events/logs/メトリクス）を確保したうえで復旧操作を行います。
 - Events の表示順が期待どおりでない場合は、`--sort-by=.metadata.creationTimestamp` を試してください（環境により `.lastTimestamp` が期待どおりでない場合があります）。
 
-## フロー一覧（初期） {#flow-index}
+プレースホルダ:
+- `<ns>`: namespace
+- `<name>`: 対象リソース名（Pod/Ingress 等）
+- `<node>`: node 名
+- `<pvc>`: pvc 名
+
+補足: まず `kubectl get ...` で実名を確定してから置換してください。
+
+<a id="flow-index"></a>
+## フロー一覧（初期）
 ### Control Plane
 - [API Server に到達できない](#flow-api-server)
 - [etcd の容量不足/レイテンシ上昇](#flow-etcd)
 
 ### Scheduling / Capacity
 - [Pod が Pending のまま](#flow-pod-pending)
+
+### Workload
+- [Pod が CrashLoopBackOff になる](#flow-crashloopbackoff)
 
 ### DNS / Network
 - [CoreDNS が不安定（名前解決失敗）](#flow-coredns)
@@ -30,6 +42,7 @@
 - [Ingress 到達性障害（Controller/Service/DNS/TLS）](#flow-ingress)
 
 ### Storage
+- [PVC が Pending のまま](#flow-pvc-pending)
 - [ストレージ I/O の遅延/Volume Attach 失敗](#flow-storage)
 
 ## フロー雛形: API Server に到達できない {#flow-api-server}
@@ -130,6 +143,59 @@ kubectl get nodes -o wide
 - [第6章：ストレージ設計と運用](../../chapters/chapter06/)
 - [第8章：マルチテナントとリソース管理](../../chapters/chapter08/)
 - [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
+
+[↑ フロー一覧へ戻る](#flow-index)
+
+## フロー雛形: Pod が CrashLoopBackOff になる {#flow-crashloopbackoff}
+
+### 症状（例）
+- `kubectl -n <ns> get pod` で `CrashLoopBackOff` が継続する
+- `RESTARTS` が増え続ける
+- readiness が通らず、アプリが安定しない
+
+### 最小コマンドセット
+```bash
+kubectl -n <ns> get pod
+kubectl -n <ns> describe pod <name>
+kubectl -n <ns> logs <name> --tail=200
+kubectl -n <ns> logs <name> --previous --tail=200
+kubectl -n <ns> get events --sort-by=.lastTimestamp
+```
+
+補足:
+- 複数コンテナの場合は `-c <container>` を指定してください。
+- `--previous` は「直前に終了したコンテナ」のログを参照します。
+
+### 切り分け（最小）
+まず見る観測ポイント:
+- Logs: アプリログ（直近と `--previous`）
+- Events: `Back-off restarting failed container`、`OOMKilled`、`Error` 等
+- 変更履歴: 直近のデプロイ/設定変更/Secret 更新/イメージ更新
+
+典型原因の当たりどころ:
+1) アプリ起動失敗（設定/依存先）
+- 環境変数・Secret/ConfigMap 参照ミス、依存先の到達性、起動時マイグレーション失敗
+
+2) リソース/Probe の不整合
+- OOMKill、CPU スロットリング、readiness/liveness の誤判定
+
+3) イメージ/エントリポイント
+- イメージ不整合、起動コマンド誤り、アーキ不一致
+
+### 暫定復旧（例）
+- 直前の既知の良いリビジョンへロールバックする（Deployment/Helm 等）
+- 影響を限定する（レプリカ調整、トラフィック切り戻し、変更凍結）
+- OOM の場合は一時的に resources を引き上げ、原因究明の時間を確保する（恒久対応は別途）
+
+### 恒久対応（例）
+- 変更管理（レビュー/検証）を強化し、変更と障害を相関できる証跡を残す
+- 監視（CrashLoopBackOff 数、再起動回数、OOMKill）とアラートを整備し Runbook と接続する
+- requests/limits と Probe の標準をテンプレ化する
+
+### 関連章
+- [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
+- [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
+- [第4章：ノード/ランタイム運用](../../chapters/chapter04/)
 
 [↑ フロー一覧へ戻る](#flow-index)
 
@@ -377,6 +443,59 @@ kubectl -n ingress-nginx get pod,svc
 - [第5章：ネットワーク設計と運用](../../chapters/chapter05/)
 - [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
 - [第10章：アップグレード戦略](../../chapters/chapter10/)
+- [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
+
+[↑ フロー一覧へ戻る](#flow-index)
+
+## フロー雛形: PVC が Pending のまま {#flow-pvc-pending}
+
+### 症状（例）
+- `kubectl -n <ns> get pvc` で `Pending` が継続する
+- Pod が `Pending`/`ContainerCreating` で進まない（ボリューム待ち）
+- Events に `ProvisioningFailed`/`failed to provision volume` 等が出る
+
+### 最小コマンドセット
+```bash
+kubectl -n <ns> get pvc
+kubectl -n <ns> describe pvc <pvc>
+kubectl get storageclass
+kubectl get events -A --sort-by=.lastTimestamp
+```
+
+### 切り分け（最小）
+まず見る観測ポイント:
+- PVC の Events: `kubectl -n <ns> describe pvc <pvc>`
+- StorageClass: `provisioner`、parameters、`volumeBindingMode`（`WaitForFirstConsumer` など）
+- CSI: controller/node plugin のログ（参照できる場合）
+- 変更履歴: StorageClass/CSI 更新、ノード入れ替え、ストレージ側メンテ
+
+典型原因の当たりどころ:
+1) StorageClass 設定/指定ミス
+- `storageClassName` の誤り/未指定、provisioner 不一致、parameters 誤り
+
+2) 容量/クォータ
+- ストレージ側容量不足、プロジェクト/テナントのクォータ制限
+
+3) `WaitForFirstConsumer`
+- Pod のスケジューリング後に Binding されるため、PVC は一時的に `Pending` に見える
+
+4) 権限/外部依存
+- ストレージ API の権限不足、ネットワーク到達性、認証期限
+
+### 暫定復旧（例）
+- 正しい StorageClass を指定して作り直す（データ要件・復旧方針に注意）
+- 容量/クォータを一時拡張し、Provision が通る状態に戻す
+- `WaitForFirstConsumer` の場合は、Pod/Deployment を作成してスケジューリングを成立させる（ノード制約も併せて確認）
+
+### 恒久対応（例）
+- StorageClass の標準（用途別テンプレ、性能/暗号化/拡張）を整備する
+- 監視（Provision/Attach 失敗、容量逼迫、レイテンシ）とアラートを標準化する
+- 変更管理（CSI/StorageClass 更新の検証・ロールバック）を運用に組み込む
+
+### 関連章
+- [第6章：ストレージ設計と運用](../../chapters/chapter06/)
+- [第8章：マルチテナントとリソース管理](../../chapters/chapter08/)
+- [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
 - [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
 
 [↑ フロー一覧へ戻る](#flow-index)
