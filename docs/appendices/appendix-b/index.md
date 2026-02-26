@@ -17,8 +17,11 @@ title: "付録B：トラブルシュートフロー集"
 プレースホルダ:
 - `<ns>`: namespace
 - `<name>`: 対象リソース名（Pod/Ingress 等）
-- `<node>`: node 名
-- `<pvc>`: pvc 名
+- `<node>`: Node 名
+- `<pvc>`: PVC 名
+- `<svc>`: Service 名
+- `<container>`: Pod 内の container 名
+- `<etcd-pod>`: etcd Pod 名（自前 Control Plane の場合。マネージドでは見えないことがあります）
 
 補足: まず `kubectl get ...` で実名を確定してから置換してください。
 
