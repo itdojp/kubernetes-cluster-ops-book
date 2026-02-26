@@ -12,7 +12,7 @@ title: "付録B：トラブルシュートフロー集"
 - まず影響範囲（顧客影響、データ影響、SLO）を確認し、Severity を確定します。
 - 変更点（直近のデプロイ/設定変更/アップグレード）を最優先で確認します。
 - 証跡（events/logs/メトリクス）を確保したうえで復旧操作を行います。
-- Events の表示順が期待どおりでない場合は、`--sort-by=.metadata.creationTimestamp` を試してください（環境により `.lastTimestamp` が期待どおりでない場合があります）。
+- Events の表示順は `--sort-by=.metadata.creationTimestamp` を基本とします（環境により `.lastTimestamp` の方が見やすい場合があります）。
 
 プレースホルダ:
 - `<ns>`: namespace
@@ -25,8 +25,7 @@ title: "付録B：トラブルシュートフロー集"
 
 補足: まず `kubectl get ...` で実名を確定してから置換してください。
 
-<a id="flow-index"></a>
-## フロー一覧（初期）
+## フロー一覧（初期） {#flow-index}
 ### Control Plane
 - [API Server に到達できない](#flow-api-server)
 - [etcd の容量不足/レイテンシ上昇](#flow-etcd)
@@ -97,7 +96,7 @@ kubectl get --raw='/readyz?verbose'
 - [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
 - [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
 
-[↑ フロー一覧へ戻る](#flow-index)
+- [↑ フロー一覧へ戻る](#flow-index)
 
 ## フロー雛形: Pod が Pending のまま {#flow-pod-pending}
 
@@ -110,13 +109,13 @@ kubectl get --raw='/readyz?verbose'
 ```bash
 kubectl -n <ns> get pod
 kubectl -n <ns> describe pod <name>
-kubectl -n <ns> get events --sort-by=.lastTimestamp
+kubectl -n <ns> get events --sort-by=.metadata.creationTimestamp
 kubectl get nodes -o wide
 ```
 
 ### 切り分け（最小）
 まず見る観測ポイント:
-- Events: `kubectl -n <ns> describe pod <name>` / `kubectl -n <ns> get events --sort-by=.lastTimestamp`
+- Events: `kubectl -n <ns> describe pod <name>` / `kubectl -n <ns> get events --sort-by=.metadata.creationTimestamp`
 - 変更履歴: 直近のマニフェスト変更、ノード増減、Quota 変更
 - Node 状態: `kubectl get nodes` / `kubectl describe node <node>`
 
@@ -152,7 +151,7 @@ kubectl get nodes -o wide
 - [第8章：マルチテナントとリソース管理](../../chapters/chapter08/)
 - [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
 
-[↑ フロー一覧へ戻る](#flow-index)
+- [↑ フロー一覧へ戻る](#flow-index)
 
 ## フロー雛形: Pod が CrashLoopBackOff になる {#flow-crashloopbackoff}
 
@@ -167,7 +166,7 @@ kubectl -n <ns> get pod
 kubectl -n <ns> describe pod <name>
 kubectl -n <ns> logs <name> --tail=200
 kubectl -n <ns> logs <name> --previous --tail=200
-kubectl -n <ns> get events --sort-by=.lastTimestamp
+kubectl -n <ns> get events --sort-by=.metadata.creationTimestamp
 ```
 
 補足:
@@ -205,7 +204,7 @@ kubectl -n <ns> get events --sort-by=.lastTimestamp
 - [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
 - [第4章：ノード/ランタイム運用](../../chapters/chapter04/)
 
-[↑ フロー一覧へ戻る](#flow-index)
+- [↑ フロー一覧へ戻る](#flow-index)
 
 ## フロー雛形: CoreDNS が不安定（名前解決失敗） {#flow-coredns}
 
@@ -218,7 +217,7 @@ kubectl -n <ns> get events --sort-by=.lastTimestamp
 ```bash
 kubectl -n kube-system get pod -l k8s-app=kube-dns -o wide
 kubectl -n kube-system logs deploy/coredns --tail=200
-kubectl -n kube-system get events --sort-by=.lastTimestamp
+kubectl -n kube-system get events --sort-by=.metadata.creationTimestamp
 ```
 
 ### 切り分け（最小）
@@ -254,7 +253,7 @@ kubectl -n kube-system get events --sort-by=.lastTimestamp
 - [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
 - [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
 
-[↑ フロー一覧へ戻る](#flow-index)
+- [↑ フロー一覧へ戻る](#flow-index)
 
 ## フロー雛形: Node が NotReady になる {#flow-node-notready}
 
@@ -267,13 +266,13 @@ kubectl -n kube-system get events --sort-by=.lastTimestamp
 ```bash
 kubectl get nodes -o wide
 kubectl describe node <node>
-kubectl get events -A --sort-by=.lastTimestamp
+kubectl get events -A --sort-by=.metadata.creationTimestamp
 ```
 
 ### 切り分け（最小）
 まず見る観測ポイント:
 - Node 状態: `kubectl describe node <node>`
-- Events: `kubectl get events -A --sort-by=.lastTimestamp`
+- Events: `kubectl get events -A --sort-by=.metadata.creationTimestamp`
 - 変更履歴: OS パッチ、ノード入れ替え、ランタイム設定、CNI/CSI 変更
 
 典型原因の当たりどころ:
@@ -301,7 +300,7 @@ kubectl get events -A --sort-by=.lastTimestamp
 - [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
 - [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
 
-[↑ フロー一覧へ戻る](#flow-index)
+- [↑ フロー一覧へ戻る](#flow-index)
 
 ## フロー雛形: etcd の容量不足/レイテンシ上昇 {#flow-etcd}
 
@@ -352,7 +351,7 @@ kubectl -n kube-system logs <etcd-pod> --tail=200
 - [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
 - [第10章：アップグレード戦略](../../chapters/chapter10/)
 
-[↑ フロー一覧へ戻る](#flow-index)
+- [↑ フロー一覧へ戻る](#flow-index)
 
 ## フロー雛形: イメージ pull 失敗（レジストリ/認証） {#flow-image-pull}
 
@@ -363,7 +362,7 @@ kubectl -n kube-system logs <etcd-pod> --tail=200
 ### 最小コマンドセット
 ```bash
 kubectl -n <ns> describe pod <name>
-kubectl -n <ns> get events --sort-by=.lastTimestamp
+kubectl -n <ns> get events --sort-by=.metadata.creationTimestamp
 kubectl -n <ns> get secret
 kubectl get nodes -o wide
 ```
@@ -399,7 +398,7 @@ kubectl get nodes -o wide
 - [第12章：自動化と運用標準化](../../chapters/chapter12/)
 - [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
 
-[↑ フロー一覧へ戻る](#flow-index)
+- [↑ フロー一覧へ戻る](#flow-index)
 
 ## フロー雛形: Ingress 到達性障害（Controller/Service/DNS/TLS） {#flow-ingress}
 
@@ -453,7 +452,7 @@ kubectl -n ingress-nginx get pod,svc
 - [第10章：アップグレード戦略](../../chapters/chapter10/)
 - [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
 
-[↑ フロー一覧へ戻る](#flow-index)
+- [↑ フロー一覧へ戻る](#flow-index)
 
 ## フロー雛形: PVC が Pending のまま {#flow-pvc-pending}
 
@@ -467,7 +466,7 @@ kubectl -n ingress-nginx get pod,svc
 kubectl -n <ns> get pvc
 kubectl -n <ns> describe pvc <pvc>
 kubectl get storageclass
-kubectl get events -A --sort-by=.lastTimestamp
+kubectl get events -A --sort-by=.metadata.creationTimestamp
 ```
 
 ### 切り分け（最小）
@@ -506,7 +505,7 @@ kubectl get events -A --sort-by=.lastTimestamp
 - [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
 - [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
 
-[↑ フロー一覧へ戻る](#flow-index)
+- [↑ フロー一覧へ戻る](#flow-index)
 
 ## フロー雛形: ストレージ I/O の遅延/Volume Attach 失敗 {#flow-storage}
 
@@ -554,4 +553,4 @@ kubectl get storageclass
 - [第9章：監視・ログ・アラート設計](../../chapters/chapter09/)
 - [第11章：障害対応とトラブルシュート](../../chapters/chapter11/)
 
-[↑ フロー一覧へ戻る](#flow-index)
+- [↑ フロー一覧へ戻る](#flow-index)
