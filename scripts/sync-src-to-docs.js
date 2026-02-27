@@ -17,6 +17,10 @@ async function ensureDir(dirPath) {
   await fs.mkdir(dirPath, { recursive: true });
 }
 
+function isMarkdownFile(filePath) {
+  return path.extname(filePath).toLowerCase() === '.md';
+}
+
 function frontMatter({ title, order, permalink }) {
   const lines = [
     '---',
@@ -56,6 +60,30 @@ async function writeDocsPage(entry) {
   });
 
   await fs.writeFile(docsPath, `${fm}${body.trimStart()}`, 'utf-8');
+}
+
+async function syncStaticAssets() {
+  const srcRoot = path.join(process.cwd(), 'src');
+  const docsRoot = path.join(process.cwd(), 'docs');
+
+  async function walk(currentDir) {
+    const entries = await fs.readdir(currentDir, { withFileTypes: true });
+    for (const entry of entries) {
+      const srcPath = path.join(currentDir, entry.name);
+      if (entry.isDirectory()) {
+        await walk(srcPath);
+        continue;
+      }
+      if (isMarkdownFile(srcPath)) continue;
+
+      const relPath = path.relative(srcRoot, srcPath);
+      const docsPath = path.join(docsRoot, relPath);
+      await ensureDir(path.dirname(docsPath));
+      await fs.copyFile(srcPath, docsPath);
+    }
+  }
+
+  await walk(srcRoot);
 }
 
 function buildNavigationYaml(config) {
@@ -110,6 +138,8 @@ async function main() {
   const navPath = path.join(process.cwd(), 'docs', '_data', 'navigation.yml');
   await ensureDir(path.dirname(navPath));
   await fs.writeFile(navPath, navYml, 'utf-8');
+
+  await syncStaticAssets();
 
   console.log('✅ Synced src -> docs');
 }
