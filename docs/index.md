@@ -13,8 +13,8 @@ Kubernetes クラスタの設計・運用（責任範囲、HA、アップグレ�
 - 可用性、アップグレード、監視、障害対応の標準化を進めたい方
 
 ## 前提
-- 本書は「Kubernetes入門：PodからIngressまで（基礎と実践）」の理解を前提とします: https://itdojp.github.io/kubernetes-basics-book/
-- コンテナ基礎は必要に応じて Podman 本を参照します: https://itdojp.github.io/podman-book/
+- 本書は「Kubernetes入門：PodからIngressまで（基礎と実践）」の理解を前提とします: [Kubernetes入門：PodからIngressまで（基礎と実践）](https://itdojp.github.io/kubernetes-basics-book/)
+- コンテナ基礎は必要に応じて Podman 本を参照します: [Podman完全ガイド](https://itdojp.github.io/podman-book/)
 
 ## 目次
 - [はじめに](introduction/)
