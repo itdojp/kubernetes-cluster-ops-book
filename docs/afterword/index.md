@@ -19,8 +19,8 @@ title: "あとがき"
 - 付録のテンプレ（チェックリスト/フロー）を起点に、ポストモーテムの学びを反映し続けることが、最も費用対効果の高い改善になります。
 
 ## 前提の再確認
-- 入門書（アプリ配置の基礎）: https://itdojp.github.io/kubernetes-basics-book/
+- 入門書（アプリ配置の基礎）: [Kubernetes入門：PodからIngressまで（基礎と実践）](https://itdojp.github.io/kubernetes-basics-book/)
 
 ## フィードバック
-- Issue: https://github.com/itdojp/kubernetes-cluster-ops-book/issues
+- Issue: [GitHub Issues](https://github.com/itdojp/kubernetes-cluster-ops-book/issues)
 - Email: knowledge@itdo.jp

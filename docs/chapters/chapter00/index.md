@@ -21,7 +21,7 @@ title: "第0章：前提とスコープ"
 
 ### 扱わない範囲
 - アプリ配置の基礎（Pod/Deployment/Service/Ingressの基本操作）
-  - 入門書: https://itdojp.github.io/kubernetes-basics-book/
+  - 入門書: [Kubernetes入門：PodからIngressまで（基礎と実践）](https://itdojp.github.io/kubernetes-basics-book/)
 - 個別ベンダの GUI 操作手順や、特定製品の詳細設定手順
 - すべての KEP/機能詳細の網羅
 

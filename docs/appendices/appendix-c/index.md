@@ -23,4 +23,4 @@ title: "付録C：参考リンク集"
 - Monitoring, Logging, and Debugging: https://kubernetes.io/docs/tasks/debug/
 
 ## 次に読む（前提）
-- Kubernetes入門：PodからIngressまで（基礎と実践）: https://itdojp.github.io/kubernetes-basics-book/
+- [Kubernetes入門：PodからIngressまで（基礎と実践）](https://itdojp.github.io/kubernetes-basics-book/)
