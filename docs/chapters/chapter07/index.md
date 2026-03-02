@@ -85,6 +85,10 @@ roleRef:
 kubectl -n tenant-a auth can-i list pods --as=system:serviceaccount:tenant-a:demo-readonly
 ```
 
+出力例（最小権限で実行できる操作の確認）:
+
+![RBAC の最小権限チェック（例）](./images/ch07-rbac-can-i-01.png)
+
 ## ServiceAccount とワークロード権限
 - ワークロードに「デフォルト ServiceAccount のトークン」を自動マウントすると、不要な権限が配布されやすくなります。
 - 権限が不要なワークロードは `automountServiceAccountToken: false` を標準にします。
@@ -104,6 +108,10 @@ kubectl label ns tenant-a \
   pod-security.kubernetes.io/warn-version=v1.35 \
   --overwrite
 ```
+
+出力例（PSS の namespace ラベル適用）:
+
+![PSS の適用（例）](./images/ch07-pss-namespace-label-02.png)
 
 運用上の要点:
 - `kube-system` 等のシステム系 namespace は例外が必要になり得ます。例外は「専用 namespace に分離」「期限/根拠」「代替策（監査/隔離）」をセットで管理します。
