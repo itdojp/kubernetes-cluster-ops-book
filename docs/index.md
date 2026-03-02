@@ -6,7 +6,7 @@ permalink: /
 ---
 # Kubernetesクラスタ設計・運用実践ガイド
 
-Kubernetes クラスタの設計・運用（責任範囲、HA、アップグレード、監視、運用標準、障害対応）を中心に、実務観点で整理する。
+Kubernetes クラスタの設計・運用（責任範囲、HA、アップグレード、監視、運用標準、障害対応）を中心に、実務観点で整理します。
 
 ## 想定読者
 - Kubernetes クラスタの設計・運用に責任を持つインフラ/SRE/プラットフォームエンジニア
@@ -15,6 +15,15 @@ Kubernetes クラスタの設計・運用（責任範囲、HA、アップグレ�
 ## 前提
 - 本書は「Kubernetes入門：PodからIngressまで（基礎と実践）」の理解を前提とします: [Kubernetes入門：PodからIngressまで（基礎と実践）](https://itdojp.github.io/kubernetes-basics-book/)
 - コンテナ基礎は必要に応じて Podman 本を参照します: [Podman完全ガイド](https://itdojp.github.io/podman-book/)
+
+## 学習成果
+- クラスタの責任範囲（プラットフォーム/テナント）を明確化し、設計判断の前提を揃えられる
+- 可用性、アップグレード、監視、障害対応を「標準化できる運用物」として定義できる
+- 変更管理/復旧/セキュリティの観点で、運用の抜け漏れを減らせる
+
+## 所要時間
+- 通読: 約2.5〜3.5時間（本文量ベース概算。コードブロック除外、400〜600文字/分換算）
+- 付録テンプレを自組織の Runbook/チェックリストへ落とし込む場合は、対象範囲により変動します。
 
 ## 目次
 - [はじめに](introduction/)
@@ -41,4 +50,11 @@ Kubernetes クラスタの設計・運用（責任範囲、HA、アップグレ�
 - [付録B：トラブルシュートフロー集](appendices/appendix-b/)
 - [付録C：参考リンク集](appendices/appendix-c/)
 
+## あとがき
 - [あとがき](afterword/)
+
+## ライセンス
+本書は CC BY-NC-SA 4.0 で公開されています。商用利用は別途契約が必要です。
+
+- シリーズ共通ライセンス: https://github.com/itdojp/it-engineer-knowledge-architecture/blob/main/LICENSE.md
+- 本リポジトリ内: https://github.com/itdojp/kubernetes-cluster-ops-book/blob/main/LICENSE.md
