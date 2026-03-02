@@ -50,7 +50,11 @@ Kubernetes クラスタの設計・運用（責任範囲、HA、アップグレ�
 - [付録B：トラブルシュートフロー集](appendices/appendix-b/)
 - [付録C：参考リンク集](appendices/appendix-c/)
 
+## あとがき
 - [あとがき](afterword/)
 
 ## ライセンス
 本書は CC BY-NC-SA 4.0 で公開されています。商用利用は別途契約が必要です。
+
+- シリーズ共通ライセンス: https://github.com/itdojp/it-engineer-knowledge-architecture/blob/main/LICENSE.md
+- 本リポジトリ内: https://github.com/itdojp/kubernetes-cluster-ops-book/blob/main/LICENSE.md

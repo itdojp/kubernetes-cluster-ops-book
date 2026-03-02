@@ -2,7 +2,7 @@
 # Customize the values marked with <...>
 
 title: "Kubernetesクラスタ設計・運用実践ガイド"
-description: "Kubernetes クラスタの設計・運用（責任範囲、HA、アップグレード、監視、運用標準、障害対応）を中心に、実務観点で整理する。"
+description: "Kubernetes クラスタの設計・運用（責任範囲、HA、アップグレード、監視、運用標準、障害対応）を中心に、実務観点で整理します。"
 author: "株式会社アイティードゥ"
 version: "1.0.0"
 lang: "ja"
