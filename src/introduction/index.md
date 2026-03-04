@@ -8,15 +8,15 @@
 - 変更管理/復旧/セキュリティの観点で、運用の抜け漏れを減らす
 
 ## 前提（読者とスコープ）
-- 前提読了: Kubernetes入門：PodからIngressまで（基礎と実践）: https://itdojp.github.io/kubernetes-basics-book/
+- 前提読了: [Kubernetes入門：PodからIngressまで（基礎と実践）](https://itdojp.github.io/kubernetes-basics-book/)
 - 本書はアプリ配置の手順書ではなく、クラスタ運用の設計・標準化に焦点を当てます
-- コンテナ基礎は必要に応じて Podman 本を参照: https://itdojp.github.io/podman-book/
+- コンテナ基礎は必要に応じて [Podman完全ガイド](https://itdojp.github.io/podman-book/) を参照してください
 
 ## 対象環境（動作確認/想定）
 本書は特定ベンダに依存しませんが、議論の前提を揃えるため、以下を基準とします。
 
-- Kubernetes: v1.35 系（2026-02-23 時点の stable は v1.35.1）
-- ノードOS: Linux
+- Kubernetes: v1.35 系（執筆時点: 2026-02-23。細かいパッチ番号とサポート状況は要確認）
+- ノード OS: Linux
 - コンテナランタイム: containerd
 - デプロイ形態:
   - マネージド Kubernetes（EKS/GKE/AKS 等）を第一想定
@@ -24,7 +24,7 @@
 
 サポートポリシー（本書の前提）:
 - 本書は v1.35 系を基準とし、minor バージョン差分が設計/運用に影響する場合は注記します。
-- バージョン互換の考え方は、Kubernetes の Version Skew Policy を参照してください: https://kubernetes.io/releases/version-skew-policy/
+- バージョン互換の考え方は、Kubernetes の [Version Skew Policy](https://kubernetes.io/releases/version-skew-policy/) を参照してください。
 
 ## 参照方針
 - 一次情報は Kubernetes/etcd の公式ドキュメントを優先します。
@@ -39,8 +39,8 @@
 - 監視/ログ/復旧の三点セットを、全章の共通軸として扱います。
 
 ## フィードバック
-- Issue: https://github.com/itdojp/kubernetes-cluster-ops-book/issues
-- Email: knowledge@itdo.jp
+- Issue: <https://github.com/itdojp/kubernetes-cluster-ops-book/issues>
+- Email: [knowledge@itdo.jp](mailto:knowledge@itdo.jp)
 
 ## 次に読む
 - [第0章：前提とスコープ](../chapters/chapter00/)（責任範囲、用語、成果物の定義）

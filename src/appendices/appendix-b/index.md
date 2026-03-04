@@ -7,7 +7,7 @@
 - まず影響範囲（顧客影響、データ影響、SLO）を確認し、Severity を確定します。
 - 変更点（直近のデプロイ/設定変更/アップグレード）を最優先で確認します。
 - 証跡（events/logs/メトリクス）を確保したうえで復旧操作を行います。
-- Events の表示順は `--sort-by=.metadata.creationTimestamp` を基本とします（環境により `.lastTimestamp` の方が見やすい場合があります）。
+- Events の表示順は `--sort-by=.metadata.creationTimestamp` を基本とします。出力フィールドは Kubernetes バージョンにより差があるため、必要に応じて `-o wide` 等で確認してください（要確認）。
 
 プレースホルダ:
 - `<ns>`: namespace
@@ -287,7 +287,7 @@ kubectl get events -A --sort-by=.metadata.creationTimestamp
 
 ### 恒久対応（例）
 - ノード保守（ドレイン/置換）を標準化し、自動化（ノードプール運用）へ寄せる
-- ログローテ/イメージ GC/ディスク監視を整備し、逼迫を予防する
+- ログローテーション/イメージ GC/ディスク監視を整備し、逼迫を予防する
 - NotReady の検知（アラート）と一次対応 Runbook を整備する
 
 ### 関連章
