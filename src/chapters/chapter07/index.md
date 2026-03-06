@@ -95,7 +95,7 @@ kubectl -n tenant-a auth can-i list pods --as=system:serviceaccount:tenant-a:dem
 PSS は Pod の最低限のセキュリティ要件を「レベル（privileged/baseline/restricted）」として整理したものです。  
 実装は Pod Security Admission を用い、namespace のラベルで適用します。
 
-例（テナント namespace に restricted を強制し、Kubernetes v1.35 のポリシーに固定）:
+例（テナント namespace に restricted を強制し、ポリシーのバージョンを明示）:
 
 ```bash
 kubectl label ns tenant-a \
@@ -106,12 +106,14 @@ kubectl label ns tenant-a \
   --overwrite
 ```
 
+注意:
+- `*-version` はクラスタバージョンと運用方針に合わせて設定してください（例の `v1.35` は執筆時点の前提。最新は要確認）。
+
 出力例（PSS の namespace ラベル適用。`tenant-a` に `pod-security.kubernetes.io/*` ラベルが付き、`--overwrite` で更新できることを見る）:
 
 ![PSS の適用（例）](./images/ch07-pss-namespace-label-02.png)
 
 ここでは `tenant-a` namespace に `pod-security.kubernetes.io/enforce` などのラベルが付き、`--overwrite` で更新されることが確認ポイントです。
-
 運用上の要点:
 - `kube-system` 等のシステム系 namespace は例外が必要になり得ます。例外は「専用 namespace に分離」「期限/根拠」「代替策（監査/隔離）」をセットで管理します。
 - アップグレード時に PSS のバージョン更新が必要になるため、変更管理（第10章）に組み込みます。

@@ -12,7 +12,7 @@ title: "付録B：トラブルシュートフロー集"
 - まず影響範囲（顧客影響、データ影響、SLO）を確認し、Severity を確定します。
 - 変更点（直近のデプロイ/設定変更/アップグレード）を最優先で確認します。
 - 証跡（events/logs/メトリクス）を確保したうえで復旧操作を行います。
-- Events の表示順は `--sort-by=.metadata.creationTimestamp` を基本とします（環境により `.lastTimestamp` の方が見やすい場合があります）。
+- Events の表示順は `--sort-by=.metadata.creationTimestamp` を基本とします。出力フィールドは Kubernetes バージョンにより差があるため、必要に応じて `-o wide` 等で確認してください（要確認）。
 
 プレースホルダ:
 - `<ns>`: namespace
@@ -285,6 +285,52 @@ kubectl get events -A --sort-by=.metadata.creationTimestamp
 3) リソース逼迫
 - メモリ不足（OOM）、ディスク逼迫、PID 枯渇
 
+### 切り分け手順テンプレ（Runbook雛形） {#template-node-notready-triage}
+
+```md
+# Node NotReady 一次対応（テンプレ）
+
+## 1. 影響確認（最初に固定）
+
+- 影響ノード:
+- 影響ワークロード（namespace/Deployment 等）:
+- ユーザー影響/業務影響:
+- 変更凍結: 実施/未実施（判断者）:
+
+## 2. 直近の変更（最優先で確認）
+
+- OS パッチ/ノード入れ替え:
+- kubelet/ランタイム設定:
+- CNI/CSI/Firewall/SG:
+- その他（関連 PR/チケット）:
+
+## 3. 観測（証跡を残す）
+
+- `kubectl get nodes -o wide`:
+- `kubectl describe node <node>`:
+- `kubectl get events -A --sort-by=.metadata.creationTimestamp`:
+- 監視ダッシュボード/ログ（URL）:
+
+## 4. 切り分け（当たりを付ける）
+
+- Pressure: Disk/Memory/PID のどれか（該当する Condition/メッセージ）:
+- kubelet/ランタイム: 再起動/停止/ログ肥大化/イメージ肥大化:
+- ネットワーク: CNI/ノード間通信/MTU/経路/Firewall/SG:
+- リソース: OOM/ディスク枯渇/PID 枯渇:
+
+## 5. 暫定復旧（判断基準を明記）
+
+- `cordon`/`drain` で影響限定（PDB/退避先キャパシティ確認）:
+- 置き換え（MTTR 優先）:
+- kubelet/ランタイム再起動（証跡確保のうえで）:
+
+## 6. 恒久対応（起票）
+
+- 再発防止（容量設計/ログローテーション/イメージ GC/監視）:
+- Runbook 更新（今回の学び）:
+- 追加調査（要確認事項）:
+```
+
 ### 暫定復旧（例）
 - `cordon`/`drain` して影響を限定し、ノードを置換する
 - ディスク/ログ/イメージを削減し、逼迫を緩和する（再発防止は別途）
@@ -292,7 +338,7 @@ kubectl get events -A --sort-by=.metadata.creationTimestamp
 
 ### 恒久対応（例）
 - ノード保守（ドレイン/置換）を標準化し、自動化（ノードプール運用）へ寄せる
-- ログローテ/イメージ GC/ディスク監視を整備し、逼迫を予防する
+- ログローテーション/イメージ GC/ディスク監視を整備し、逼迫を予防する
 - NotReady の検知（アラート）と一次対応 Runbook を整備する
 
 ### 関連章
