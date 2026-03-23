@@ -56,10 +56,42 @@ etcd は Kubernetes のクラスタ状態を保持する基盤であり、障害
 - リストア手順（検証環境での演習）
 - 復旧手順とエスカレーション
 
+### 最小実行例（kubeadm 管理の static Pod を前提）
+前提:
+- ローカル etcd を使う Control Plane ノードで実行する
+- endpoint は `https://127.0.0.1:2379`、証明書は kubeadm 既定の `/etc/kubernetes/pki/etcd/` を使う
+- 本番 restore は API Server 停止計画とセットで扱い、まず検証環境で演習する
+
+```bash
+export ETCDCTL_API=3
+
+etcdctl \
+  --endpoints=https://127.0.0.1:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key \
+  snapshot save /var/backups/etcd/snapshot.db
+
+etcdutl snapshot status /var/backups/etcd/snapshot.db -w table
+
+etcdutl \
+  snapshot restore /var/backups/etcd/snapshot.db \
+  --data-dir /var/lib/etcd-from-backup
+```
+
+restore 後の最小反映:
+1. `/etc/kubernetes/manifests/etcd.yaml` の `name: etcd-data` に対応する `hostPath.path` を `/var/lib/etcd-from-backup` に差し替えます。
+2. `systemctl restart kubelet` で static Pod を再読込します。
+3. API Server / Controller Manager / Scheduler の再起動要否を runbook に含めます。
+
 ## 注意点（運用）
 - リストアはクラスタ停止を伴う場合があります。実施条件、影響範囲、判断責任者を事前に定義してください（要確認）。
 - バックアップの保管先（オブジェクトストレージ等）も障害します。可用性とアクセス制御を設計に含めます。
 - トポロジ（stacked / external）の選択は、障害分離と運用負荷のトレードオフです。組織の運用体制に合わせて決めます。
+
+注意:
+- `etcdctl snapshot restore` は etcd v3.5 で非推奨、v3.6 で削除済みのため、restore/status は `etcdutl` 前提で記述します。
+- external etcd やマネージド Control Plane では、証明書パスと再起動手順が異なるため、各製品の手順に読み替えます。
 
 ## 実務チェック観点（最低5項目）
 - RPO/RTO とバックアップ頻度が整合している
