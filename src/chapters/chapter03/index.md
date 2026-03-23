@@ -68,21 +68,29 @@ export ETCDCTL_API=3
 etcdctl \
   --endpoints=https://127.0.0.1:2379 \
   --cacert=/etc/kubernetes/pki/etcd/ca.crt \
-  --cert=/etc/kubernetes/pki/etcd/server.crt \
-  --key=/etc/kubernetes/pki/etcd/server.key \
+  --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt \
+  --key=/etc/kubernetes/pki/etcd/healthcheck-client.key \
   snapshot save /var/backups/etcd/snapshot.db
 
 etcdutl snapshot status /var/backups/etcd/snapshot.db -w table
 
+# 例: etcd.yaml の値をそのまま転記する
+ETCD_NAME=\"<etcd.yaml の --name>\"
+ETCD_INITIAL_CLUSTER=\"<etcd.yaml の --initial-cluster>\"
+ETCD_INITIAL_ADVERTISE_PEER_URLS=\"<etcd.yaml の --initial-advertise-peer-urls>\"
+
 etcdutl \
   snapshot restore /var/backups/etcd/snapshot.db \
+  --name \"${ETCD_NAME}\" \
+  --initial-cluster \"${ETCD_INITIAL_CLUSTER}\" \
+  --initial-advertise-peer-urls \"${ETCD_INITIAL_ADVERTISE_PEER_URLS}\" \
   --data-dir /var/lib/etcd-from-backup
 ```
 
 restore 後の最小反映:
 1. `/etc/kubernetes/manifests/etcd.yaml` の `name: etcd-data` に対応する `hostPath.path` を `/var/lib/etcd-from-backup` に差し替えます。
 2. `systemctl restart kubelet` で static Pod を再読込します。
-3. API Server / Controller Manager / Scheduler の再起動要否を runbook に含めます。
+3. API Server / Controller Manager / Scheduler の再起動要否を Runbook に含めます。
 
 ## 注意点（運用）
 - リストアはクラスタ停止を伴う場合があります。実施条件、影響範囲、判断責任者を事前に定義してください（要確認）。
