@@ -3,7 +3,7 @@
 Kubernetes クラスタの設計・運用（責任範囲、HA、アップグレード、監視、運用標準、障害対応）を中心に、実務観点で整理する。
 
 ## オンライン版
-- https://itdojp.github.io/kubernetes-cluster-ops-book/
+- [Kubernetesクラスタ設計・運用実践ガイド](https://itdojp.github.io/kubernetes-cluster-ops-book/)
 
 ## 対象読者
 - Kubernetes クラスタの設計・運用に責任を持つインフラ/SRE/プラットフォームエンジニア
@@ -35,8 +35,8 @@ npm run dev
 ```
 
 ## フィードバック
-- Issue: https://github.com/itdojp/kubernetes-cluster-ops-book/issues
-- Email: knowledge@itdo.jp
+- Issue: [itdojp/kubernetes-cluster-ops-book の Issues](https://github.com/itdojp/kubernetes-cluster-ops-book/issues)
+- Email: [knowledge@itdo.jp](mailto:knowledge@itdo.jp)
 
 ## ライセンス
 - CC-BY-NC-SA-4.0（商用利用は別途契約が必要）
