@@ -20,7 +20,7 @@ title: "はじめに"
 ## 対象環境（動作確認/想定）
 本書は特定ベンダに依存しませんが、議論の前提を揃えるため、以下を基準とします。
 
-- Kubernetes: v1.35 系（執筆時点: 2026-02-23。細かいパッチ番号とサポート状況は要確認）
+- Kubernetes: v1.36 系 / v1.35 系を主な確認対象とします（2026-05-23（Asia/Tokyo）時点の公式リリース情報では、サポート対象 minor は v1.36 / v1.35 / v1.34）。
 - ノード OS: Linux
 - コンテナランタイム: containerd
 - デプロイ形態:
@@ -28,8 +28,8 @@ title: "はじめに"
   - オンプレ/自前運用（kubeadm 等）は差分を補足として扱う
 
 サポートポリシー（本書の前提）:
-- 本書は v1.35 系を基準とし、minor バージョン差分が設計/運用に影響する場合は注記します。
-- バージョン互換の考え方は、Kubernetes の [Version Skew Policy](https://kubernetes.io/releases/version-skew-policy/) を参照してください。
+- 本書は特定の patch version に固定しません。Kubernetes はサポート対象 minor と patch release が変化するため、作業前に [Kubernetes Releases](https://kubernetes.io/releases/) を確認してください。
+- バージョン互換の考え方は、Kubernetes の [Version Skew Policy](https://kubernetes.io/releases/version-skew-policy/) を参照してください。クラスタ構築ツールやマネージドサービスが追加制約を持つ場合は、その制約を優先します。
 
 ## 参照方針
 - 一次情報は Kubernetes/etcd の公式ドキュメントを優先します。

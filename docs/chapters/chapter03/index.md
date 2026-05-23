@@ -61,6 +61,17 @@ etcd は Kubernetes のクラスタ状態を保持する基盤であり、障害
 - リストア手順（検証環境での演習）
 - 復旧手順とエスカレーション
 
+### 復旧演習ゲート
+`etcdctl snapshot save` の成功や `etcdutl snapshot status` の表示は、リストア完了を保証しません。Runbook には少なくとも次を含めます。
+
+| 観点 | 確認内容 |
+| --- | --- |
+| 取得証跡 | snapshot ファイル、取得時刻、etcd / etcdutl version、対象 endpoint、証明書パス、保存先を記録する |
+| 保管 | snapshot を Control Plane ノード外へ退避し、暗号化、改ざん防止、最小権限、保持期間を定義する |
+| リストア演習 | 本番とは分離した検証環境で restore し、API Server の疎通、主要 namespace / CRD / 代表ワークロードを確認する |
+| 変更連動 | Kubernetes / etcd / 証明書 / static Pod manifest の変更時は、バックアップと restore Runbook を再検証する |
+| 責任分界 | マネージド Control Plane では etcd snapshot を直接扱えない場合があるため、ベンダ提供のバックアップ/復旧責任範囲を確認する |
+
 ### 最小実行例（kubeadm 管理の static Pod を前提）
 前提:
 - ローカル etcd を使う Control Plane ノードで実行する
