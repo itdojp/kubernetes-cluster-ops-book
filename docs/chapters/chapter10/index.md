@@ -38,18 +38,31 @@ Kubernetes 本体だけ上げても、周辺（アドオン/CRD）で非互換�
 
 ## Version Skew（互換性）の前提
 互換性は Kubernetes の Version Skew Policy に従って設計します。  
-本書では数値を固定せず、公式ポリシーを一次情報として参照してください。
+本書では作業時点の公式ポリシーを一次情報として参照してください。
 
+2026-05-23（Asia/Tokyo）時点の公式情報では、Kubernetes プロジェクトは直近3つの minor release（v1.36 / v1.35 / v1.34）を保守対象としています。アップグレード計画では、対象クラスタがサポート対象 minor に入っているかを最初に確認します。
+
+| 対象 | 運用計画で確認すること |
+| --- | --- |
+| kube-apiserver | HA 構成では最も新しい API Server と古い API Server の minor 差分が許容範囲内であること |
+| kubelet / kube-proxy | API Server より新しくしないこと。許容される古い minor 差分は Version Skew Policy と HA 構成時の制約で確認すること |
+| controller-manager / scheduler / cloud-controller-manager | API Server より新しくしないこと。通常は API Server minor と合わせ、live upgrade 時の一時差分だけを許容すること |
+| kubectl | API Server との minor 差分が許容範囲内であること。運用端末や CI runner の kubectl も棚卸し対象にすること |
+| 構築ツール/マネージドサービス | kubeadm、EKS/GKE/AKS などが追加の version skew / upgrade path 制約を持つ場合は、その制約を優先すること |
+
+- [Kubernetes Releases](https://kubernetes.io/releases/)
 - [Version Skew Policy](https://kubernetes.io/releases/version-skew-policy/)
 
 ## 実施順序（一般論）
 詳細は環境に依存しますが、一般的には次の順序で「影響の大きいものから」段階的に実施します。
 
-1. 事前準備（変更凍結、バックアップ、関係者周知、検証計画）
+1. 事前準備（変更凍結、バックアップ、関係者周知、検証計画、サポート対象 minor の確認）
 2. Control Plane（HA の場合は段階的に）
-3. Node（ノードプール単位でロール）
+3. Node（ノードプール単位で drain / upgrade / uncordon を繰り返す）
 4. アドオン（互換性が前提。事前/事後どちらが適切かはアドオン設計に依存）
 5. 事後検証（smoke test、監視/ログ、SLO 影響の確認）
+
+kubeadm で自前運用する場合は、公式手順の `kubeadm upgrade plan` / Control Plane upgrade / node drain / kubelet・kubectl upgrade / uncordon / worker node upgrade / cluster status verification の流れを、自組織の Runbook に落とし込みます。マネージド Kubernetes では、Control Plane と Node Pool の責任分界、アップグレード順序、ロールバック可否を各サービスの仕様で確認します。
 
 関連: 事前確認の最小チェックリストは [付録A：運用チェックリストPack（アップグレード前チェックリスト）](../../appendices/appendix-a/#checklist-upgrade-pre) を参照してください。
 

@@ -4,12 +4,15 @@
 
 ## Kubernetes 公式ドキュメント
 - [Cluster Administration](https://kubernetes.io/docs/concepts/cluster-administration/)
-- [Manage Resources（Quota/LimitRange 等）](https://kubernetes.io/docs/concepts/policy/)
+- [Kubernetes Releases](https://kubernetes.io/releases/)
 - [Version Skew Policy](https://kubernetes.io/releases/version-skew-policy/)
+- [Upgrading kubeadm clusters](https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/)
+- [Manage Resources（Quota/LimitRange 等）](https://kubernetes.io/docs/concepts/policy/)
 - [kubectl リファレンス](https://kubernetes.io/docs/reference/kubectl/)
 
 ## etcd
 - [etcd ドキュメント](https://etcd.io/docs/)
+- [Operating etcd clusters for Kubernetes](https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/)
 
 ## kubeadm（自前運用の入口）
 - [kubeadm](https://kubernetes.io/docs/reference/setup-tools/kubeadm/)
