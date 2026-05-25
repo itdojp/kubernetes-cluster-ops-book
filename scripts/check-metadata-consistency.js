@@ -218,23 +218,26 @@ function walkFiles(absDir, visitor, relDir = '') {
 
 function filesAreEqual(leftPath, rightPath) {
   const leftFd = fs.openSync(leftPath, 'r');
-  const rightFd = fs.openSync(rightPath, 'r');
-  const leftBuffer = Buffer.allocUnsafe(64 * 1024);
-  const rightBuffer = Buffer.allocUnsafe(64 * 1024);
-
   try {
-    while (true) {
-      const leftBytes = fs.readSync(leftFd, leftBuffer, 0, leftBuffer.length, null);
-      const rightBytes = fs.readSync(rightFd, rightBuffer, 0, rightBuffer.length, null);
-      if (leftBytes !== rightBytes) return false;
-      if (leftBytes === 0) return true;
-      if (!leftBuffer.subarray(0, leftBytes).equals(rightBuffer.subarray(0, rightBytes))) {
-        return false;
+    const rightFd = fs.openSync(rightPath, 'r');
+    const leftBuffer = Buffer.allocUnsafe(64 * 1024);
+    const rightBuffer = Buffer.allocUnsafe(64 * 1024);
+
+    try {
+      while (true) {
+        const leftBytes = fs.readSync(leftFd, leftBuffer, 0, leftBuffer.length, null);
+        const rightBytes = fs.readSync(rightFd, rightBuffer, 0, rightBuffer.length, null);
+        if (leftBytes !== rightBytes) return false;
+        if (leftBytes === 0) return true;
+        if (!leftBuffer.subarray(0, leftBytes).equals(rightBuffer.subarray(0, rightBytes))) {
+          return false;
+        }
       }
+    } finally {
+      fs.closeSync(rightFd);
     }
   } finally {
     fs.closeSync(leftFd);
-    fs.closeSync(rightFd);
   }
 }
 
@@ -396,13 +399,6 @@ function validateStaticAssets(entries) {
     const srcAbs = resolveRepoPath(srcRel, `static asset ${srcRel}`, { mustExist: true, file: true });
     const docsAbs = resolveRepoPath(docsRel, `static asset ${docsRel}`, { mustExist: true, file: true });
     if (!srcAbs || !docsAbs) continue;
-
-    const srcStat = fs.statSync(srcAbs);
-    const docsStat = fs.statSync(docsAbs);
-    if (srcStat.size !== docsStat.size) {
-      addError(`${docsRel} is not synchronized with ${srcRel}; run npm run sync.`);
-      continue;
-    }
 
     if (!filesAreEqual(srcAbs, docsAbs)) {
       addError(`${docsRel} is not synchronized with ${srcRel}; run npm run sync.`);
