@@ -192,6 +192,22 @@ function normalizeHomepage(value) {
   return raw.endsWith('/') ? raw : `${raw}/`;
 }
 
+function pagesCoordinates(homepage) {
+  try {
+    const parsed = new URL(homepage);
+    const pathname = parsed.pathname.endsWith('/')
+      ? parsed.pathname.slice(0, -1)
+      : parsed.pathname;
+    return {
+      url: parsed.origin,
+      baseurl: pathname === '/' ? '' : pathname,
+    };
+  } catch (err) {
+    addError(`book-config.json homepage must be a valid URL: ${homepage}`);
+    return null;
+  }
+}
+
 function collectEntries(config) {
   const s = config.structure || {};
   const entries = [];
@@ -272,8 +288,10 @@ function validateMetadata(config, pkg, lockRoot, docsConfig, readme) {
     addError('book-config.json repository.url must be a GitHub repository URL ending in .git.');
     return;
   }
+  const repoName = repoSlug.split('/')[1];
+  const pages = pagesCoordinates(config.homepage);
 
-  assertEqual(pkg.name, 'kubernetes-cluster-ops-book', 'package.json name');
+  assertEqual(pkg.name, repoName, 'package.json name');
   assertEqual(pkg.version, config.version, 'package.json version');
   assertEqual(pkg.description, config.description, 'package.json description');
   assertEqual(pkg.author, config.author, 'package.json author');
@@ -293,8 +311,10 @@ function validateMetadata(config, pkg, lockRoot, docsConfig, readme) {
   assertEqual(docsConfig.version, config.version, 'docs/_config.yml version');
   assertEqual(docsConfig.lang, config.language, 'docs/_config.yml lang');
   assertEqual(docsConfig.repository_branch, config.repository.branch, 'docs/_config.yml repository_branch');
-  assertEqual(docsConfig.url, 'https://itdojp.github.io', 'docs/_config.yml url');
-  assertEqual(docsConfig.baseurl, '/kubernetes-cluster-ops-book', 'docs/_config.yml baseurl');
+  if (pages) {
+    assertEqual(docsConfig.url, pages.url, 'docs/_config.yml url');
+    assertEqual(docsConfig.baseurl, pages.baseurl, 'docs/_config.yml baseurl');
+  }
   assertEqual(docsConfig.repository, repoSlug, 'docs/_config.yml repository');
 
   assertContains(readme, config.homepage, 'README.md online URL');
@@ -420,6 +440,13 @@ function validateNavigation(config, nav) {
     appendices: Array.isArray(s.appendices) ? s.appendices : [],
     afterword: s.afterword ? [s.afterword] : [],
   };
+  const expectedSections = new Set(Object.keys(expected));
+
+  for (const section of Object.keys(nav)) {
+    if (!expectedSections.has(section)) {
+      addError(`docs/_data/navigation.yml has unexpected section: ${section}`);
+    }
+  }
 
   for (const section of Object.keys(expected)) {
     const actualItems = nav[section] || [];
