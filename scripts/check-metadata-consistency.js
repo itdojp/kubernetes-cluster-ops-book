@@ -216,6 +216,28 @@ function walkFiles(absDir, visitor, relDir = '') {
   }
 }
 
+function filesAreEqual(leftPath, rightPath) {
+  const leftFd = fs.openSync(leftPath, 'r');
+  const rightFd = fs.openSync(rightPath, 'r');
+  const leftBuffer = Buffer.allocUnsafe(64 * 1024);
+  const rightBuffer = Buffer.allocUnsafe(64 * 1024);
+
+  try {
+    while (true) {
+      const leftBytes = fs.readSync(leftFd, leftBuffer, 0, leftBuffer.length, null);
+      const rightBytes = fs.readSync(rightFd, rightBuffer, 0, rightBuffer.length, null);
+      if (leftBytes !== rightBytes) return false;
+      if (leftBytes === 0) return true;
+      if (!leftBuffer.subarray(0, leftBytes).equals(rightBuffer.subarray(0, rightBytes))) {
+        return false;
+      }
+    }
+  } finally {
+    fs.closeSync(leftFd);
+    fs.closeSync(rightFd);
+  }
+}
+
 function navPathToDocsPath(navPath, label) {
   if (typeof navPath !== 'string' || navPath.trim() === '') {
     addError(`${label} must be a non-empty path.`);
@@ -382,7 +404,7 @@ function validateStaticAssets(entries) {
       continue;
     }
 
-    if (!fs.readFileSync(srcAbs).equals(fs.readFileSync(docsAbs))) {
+    if (!filesAreEqual(srcAbs, docsAbs)) {
       addError(`${docsRel} is not synchronized with ${srcRel}; run npm run sync.`);
     }
   }
