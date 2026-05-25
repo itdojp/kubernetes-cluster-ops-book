@@ -29,6 +29,15 @@ npm run sync
 npm run build
 ```
 
+### 品質確認
+`book-config.json` を正本として、npm パッケージ情報、Jekyll 設定、公開用 `docs/`、
+ナビゲーション、`src/` との同期状態を確認します。
+
+```bash
+npm run check:metadata
+npm test
+```
+
 ### ローカルプレビュー
 ```bash
 npm run dev
