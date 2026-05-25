@@ -21,13 +21,22 @@ function isMarkdownFile(filePath) {
   return path.extname(filePath).toLowerCase() === '.md';
 }
 
-function frontMatter({ title, order, permalink }) {
+function frontMatter({ title, order, permalink, description, author, version }) {
   const lines = [
     '---',
     'layout: book',
     `order: ${order}`,
     `title: "${yamlDoubleQuoteEscape(title)}"`,
   ];
+  if (description) {
+    lines.push(`description: "${yamlDoubleQuoteEscape(description)}"`);
+  }
+  if (author) {
+    lines.push(`author: "${yamlDoubleQuoteEscape(author)}"`);
+  }
+  if (version) {
+    lines.push(`version: "${yamlDoubleQuoteEscape(version)}"`);
+  }
   if (permalink) {
     lines.push(`permalink: ${permalink}`);
   }
@@ -46,7 +55,7 @@ function collectEntries(config) {
   return entries;
 }
 
-async function writeDocsPage(entry) {
+async function writeDocsPage(entry, config) {
   const srcPath = path.join(process.cwd(), entry.srcPath);
   const docsPath = path.join(process.cwd(), entry.docsPath);
 
@@ -57,6 +66,9 @@ async function writeDocsPage(entry) {
     title: entry.title,
     order: entry.order,
     permalink: entry.permalink,
+    description: entry.id === 'index' ? config.description : undefined,
+    author: entry.id === 'index' ? config.author : undefined,
+    version: entry.id === 'index' ? config.version : undefined,
   });
 
   await fs.writeFile(docsPath, `${fm}${body.trimStart()}`, 'utf-8');
@@ -131,7 +143,7 @@ async function main() {
   const entries = collectEntries(config);
 
   for (const entry of entries) {
-    await writeDocsPage(entry);
+    await writeDocsPage(entry, config);
   }
 
   const navYml = buildNavigationYaml(config);

@@ -33,6 +33,9 @@ jobs:
           cache: npm
           cache-dependency-path: book-formatter/package-lock.json
 
+      - name: Metadata consistency check
+        run: npm run check:metadata
+
       - name: Install dependencies (book-formatter)
         working-directory: book-formatter
         run: npm ci
