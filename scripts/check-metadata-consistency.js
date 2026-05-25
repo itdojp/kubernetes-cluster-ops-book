@@ -206,7 +206,7 @@ function collectEntries(config) {
 function walkFiles(absDir, visitor, relDir = '') {
   const dirents = fs.readdirSync(absDir, { withFileTypes: true });
   for (const dirent of dirents) {
-    const relPath = normalizeSlash(path.posix.join(relDir, dirent.name));
+    const relPath = normalizeSlash(path.join(relDir, dirent.name));
     const absPath = path.join(absDir, dirent.name);
     if (dirent.isDirectory()) {
       walkFiles(absPath, visitor, relPath);
@@ -374,6 +374,13 @@ function validateStaticAssets(entries) {
     const srcAbs = resolveRepoPath(srcRel, `static asset ${srcRel}`, { mustExist: true, file: true });
     const docsAbs = resolveRepoPath(docsRel, `static asset ${docsRel}`, { mustExist: true, file: true });
     if (!srcAbs || !docsAbs) continue;
+
+    const srcStat = fs.statSync(srcAbs);
+    const docsStat = fs.statSync(docsAbs);
+    if (srcStat.size !== docsStat.size) {
+      addError(`${docsRel} is not synchronized with ${srcRel}; run npm run sync.`);
+      continue;
+    }
 
     if (!fs.readFileSync(srcAbs).equals(fs.readFileSync(docsAbs))) {
       addError(`${docsRel} is not synchronized with ${srcRel}; run npm run sync.`);
