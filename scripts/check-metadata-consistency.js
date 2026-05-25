@@ -203,6 +203,19 @@ function collectEntries(config) {
   return entries;
 }
 
+function walkFiles(absDir, visitor, relDir = '') {
+  const dirents = fs.readdirSync(absDir, { withFileTypes: true });
+  for (const dirent of dirents) {
+    const relPath = normalizeSlash(path.posix.join(relDir, dirent.name));
+    const absPath = path.join(absDir, dirent.name);
+    if (dirent.isDirectory()) {
+      walkFiles(absPath, visitor, relPath);
+      continue;
+    }
+    visitor({ absPath, relPath, dirent });
+  }
+}
+
 function navPathToDocsPath(navPath, label) {
   if (typeof navPath !== 'string' || navPath.trim() === '') {
     addError(`${label} must be a non-empty path.`);
@@ -327,6 +340,53 @@ function validateEntries(config, entries) {
   }
 }
 
+function validateStaticAssets(entries) {
+  const srcRoot = path.join(repoRoot, 'src');
+  const docsRoot = path.join(repoRoot, 'docs');
+  const mirroredDocsAssets = new Set();
+
+  for (const entry of entries) {
+    const docsRel = normalizeSlash(entry.docsPath || '').replace(/^docs\//, '');
+    const firstSegment = docsRel.split('/', 1)[0];
+    if (firstSegment && firstSegment !== 'index.md') {
+      mirroredDocsAssets.add(firstSegment);
+    }
+  }
+
+  const srcAssets = new Map();
+  walkFiles(srcRoot, ({ relPath, dirent }) => {
+    if (path.extname(relPath).toLowerCase() === '.md') return;
+    if (!dirent.isFile() && !dirent.isSymbolicLink()) return;
+    srcAssets.set(relPath, `src/${relPath}`);
+  });
+
+  const docsAssets = new Map();
+  walkFiles(docsRoot, ({ relPath, dirent }) => {
+    if (path.extname(relPath).toLowerCase() === '.md') return;
+    if (!dirent.isFile() && !dirent.isSymbolicLink()) return;
+    const firstSegment = relPath.split('/', 1)[0];
+    if (!mirroredDocsAssets.has(firstSegment)) return;
+    docsAssets.set(relPath, `docs/${relPath}`);
+  });
+
+  for (const [relPath, srcRel] of srcAssets) {
+    const docsRel = `docs/${relPath}`;
+    const srcAbs = resolveRepoPath(srcRel, `static asset ${srcRel}`, { mustExist: true, file: true });
+    const docsAbs = resolveRepoPath(docsRel, `static asset ${docsRel}`, { mustExist: true, file: true });
+    if (!srcAbs || !docsAbs) continue;
+
+    if (!fs.readFileSync(srcAbs).equals(fs.readFileSync(docsAbs))) {
+      addError(`${docsRel} is not synchronized with ${srcRel}; run npm run sync.`);
+    }
+  }
+
+  for (const relPath of docsAssets.keys()) {
+    if (!srcAssets.has(relPath)) {
+      addError(`docs/${relPath} has no matching source asset at src/${relPath}; run npm run sync.`);
+    }
+  }
+}
+
 function validateNavigation(config, nav) {
   const s = config.structure || {};
   const expected = {
@@ -366,6 +426,7 @@ function main() {
 
   validateMetadata(config, pkg, lockRoot, docsConfig, readme);
   validateEntries(config, entries);
+  validateStaticAssets(entries);
   validateNavigation(config, nav);
 
   if (errors.length > 0) {
