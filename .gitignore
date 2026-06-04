@@ -1,5 +1,13 @@
 node_modules/
 dist/
 _site/
+.jekyll-cache/
+.jekyll-metadata
+.bundle/
+vendor/bundle/
+Gemfile.lock
+docs/_site/
+docs/.jekyll-cache/
+docs/.jekyll-metadata
 .DS_Store
 *.log

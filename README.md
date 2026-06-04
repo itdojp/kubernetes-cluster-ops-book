@@ -11,12 +11,12 @@ Kubernetes クラスタの設計・運用（責任範囲、HA、アップグレ�
 ## 開発（ローカル）
 
 ### 前提
-- Node.js（動作確認: v22）
+- Node.js 20+（CI は Node.js 20 を使用）
 - npm
 
 ### セットアップ
 ```bash
-npm install
+npm ci
 ```
 
 ### src → docs 同期
@@ -34,6 +34,7 @@ npm run build
 ナビゲーション、`src/` との同期状態を確認します。
 
 ```bash
+npm run check:security
 npm run check:metadata
 npm test
 ```
