@@ -14,11 +14,11 @@
     "profile": "B",
     "modules": {
       "quickStart": false,
-      "readingGuide": false,
+      "readingGuide": true,
       "checklistPack": true,
       "troubleshootingFlow": true,
       "conceptMap": false,
-      "figureIndex": true,
+      "figureIndex": false,
       "legalNotice": false,
       "glossary": false
     }
