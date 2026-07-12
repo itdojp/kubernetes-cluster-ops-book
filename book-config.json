@@ -18,8 +18,8 @@
       "checklistPack": true,
       "troubleshootingFlow": true,
       "conceptMap": false,
-      "figureIndex": true,
-      "legalNotice": true,
+      "figureIndex": false,
+      "legalNotice": false,
       "glossary": false
     }
   },
