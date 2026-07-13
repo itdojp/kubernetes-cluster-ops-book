@@ -18,7 +18,7 @@
       "checklistPack": true,
       "troubleshootingFlow": true,
       "conceptMap": false,
-      "figureIndex": false,
+      "figureIndex": true,
       "legalNotice": false,
       "glossary": false
     }
@@ -187,13 +187,22 @@
         "srcPath": "src/appendices/appendix-c/index.md",
         "docsPath": "docs/appendices/appendix-c/index.md",
         "navPath": "/appendices/appendix-c/"
+      },
+      {
+        "id": "appendix-d",
+        "title": "付録D：図表索引",
+        "description": "第7章で公開している PNG 図版の用途と確認観点",
+        "order": 18,
+        "srcPath": "src/appendices/appendix-d/index.md",
+        "docsPath": "docs/appendices/appendix-d/index.md",
+        "navPath": "/appendices/appendix-d/"
       }
     ],
     "afterword": {
       "id": "afterword",
       "title": "あとがき",
       "description": "まとめ・次の発展（セキュリティ/プラットフォーム/運用高度化）",
-      "order": 18,
+      "order": 19,
       "srcPath": "src/afterword/index.md",
       "docsPath": "docs/afterword/index.md",
       "navPath": "/afterword/"

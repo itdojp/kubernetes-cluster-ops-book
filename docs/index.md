@@ -67,6 +67,7 @@ Kubernetes クラスタの設計・運用（責任範囲、HA、アップグレ�
 - [付録A：運用チェックリストPack](appendices/appendix-a/)
 - [付録B：トラブルシュートフロー集](appendices/appendix-b/)
 - [付録C：参考リンク集](appendices/appendix-c/)
+- [付録D：図表索引](appendices/appendix-d/)
 
 ## あとがき
 

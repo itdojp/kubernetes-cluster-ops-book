@@ -82,6 +82,8 @@ kubectl -n tenant-a auth can-i list pods --as=system:serviceaccount:tenant-a:dem
 
 出力例（最小権限で実行できる操作の確認。`list pods` が `yes` になり、想定外の操作は `no` になることを見る）:
 
+### RBAC の最小権限チェック（例） {#figure-ch07-rbac-can-i}
+
 ![RBAC の最小権限チェック（例）](./images/ch07-rbac-can-i-01.png)
 
 ここでは `kubectl auth can-i list pods` が `yes` を返し、許可していない操作は `no` になることが確認ポイントです。
@@ -110,6 +112,8 @@ kubectl label ns tenant-a \
 - `*-version` はクラスタバージョンと運用方針に合わせて設定してください（例の `v1.35` は執筆時点の前提。最新は要確認）。
 
 出力例（PSS の namespace ラベル適用。`tenant-a` に `pod-security.kubernetes.io/*` ラベルが付き、`--overwrite` で更新できることを見る）:
+
+### PSS の適用（例） {#figure-ch07-pss-namespace-label}
 
 ![PSS の適用（例）](./images/ch07-pss-namespace-label-02.png)
 
