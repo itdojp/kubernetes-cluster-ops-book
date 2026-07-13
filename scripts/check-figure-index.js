@@ -76,7 +76,7 @@ function collectFiles(relDir) {
   for (const entry of fs.readdirSync(path.join(repoRoot, relDir), { withFileTypes: true })) {
     const relPath = path.posix.join(relDir, entry.name);
     if (entry.isDirectory()) files.push(...collectFiles(relPath));
-    else files.push(relPath);
+    else if (entry.isFile()) files.push(relPath);
   }
   return files;
 }
@@ -160,6 +160,20 @@ function validateConfig(config) {
   if (!afterword || afterword.order !== figureIndex.entry.order + 1) {
     addError('book-config.json must place afterword immediately after Appendix D for next navigation.');
   }
+}
+
+function validateFormatterConfig(config) {
+  const formatterConfig = readJson('book-formatter-config.json');
+  assertEqual(
+    JSON.stringify(formatterConfig.ux),
+    JSON.stringify(config.ux),
+    'book-formatter-config.json ux',
+  );
+  assertEqual(
+    JSON.stringify(formatterConfig.structure),
+    JSON.stringify(config.structure),
+    'book-formatter-config.json structure',
+  );
 }
 
 function validateSourceDocsSync(srcPath, docsPath, label) {
@@ -277,6 +291,7 @@ function validateNavigationAndTop(config) {
 function main() {
   const config = readJson('book-config.json');
   validateConfig(config);
+  validateFormatterConfig(config);
 
   const chapter = validateSourceDocsSync(figureIndex.chapter.srcPath, figureIndex.chapter.docsPath, 'chapter07');
   const index = validateSourceDocsSync(figureIndex.entry.srcPath, figureIndex.entry.docsPath, 'Appendix D');
