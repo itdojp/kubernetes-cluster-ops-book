@@ -37,6 +37,8 @@ appendices:
     path: "/appendices/appendix-b/"
   - title: "付録C：参考リンク集"
     path: "/appendices/appendix-c/"
+  - title: "付録D：図表索引"
+    path: "/appendices/appendix-d/"
 
 afterword:
   - title: "あとがき"
