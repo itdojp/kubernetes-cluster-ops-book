@@ -69,6 +69,12 @@ jobs:
           test "$after_uid" != "$before_uid"
           test "$(docker exec "$node" pidof kubelet | awk '{print $1}')" = "$kubelet_pid"
           test "$(docker exec "$node" cat "/proc/${kubelet_pid}/stat" | awk '{print $22}')" = "$kubelet_start"
+          for _ in $(seq 1 60); do
+            if kubectl get --raw=/readyz >/dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+          done
           kubectl get --raw=/readyz
           kubectl -n kube-system wait --for=condition=Ready pod -l component=etcd --timeout=120s
 
