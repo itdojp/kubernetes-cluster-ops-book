@@ -72,11 +72,13 @@ etcd は Kubernetes のクラスタ状態を保持する基盤であり、障害
 | 変更連動 | Kubernetes / etcd / 証明書 / static Pod manifest の変更時は、バックアップと restore Runbook を再検証する |
 | 責任分界 | マネージド Control Plane では etcd snapshot を直接扱えない場合があるため、ベンダ提供のバックアップ/復旧責任範囲を確認する |
 
-### 最小実行例（kubeadm 管理の static Pod を前提）
+### 最小実行例（単一 Control Planeのkubeadm stacked etcd）
 前提:
-- ローカル etcd を使う Control Plane ノードで実行する
+- **単一 Control Plane、単一local member**で、kubeadm が管理する stacked etcd の static Pod を対象とする
 - endpoint は `https://127.0.0.1:2379`、証明書は kubeadm 既定の `/etc/kubernetes/pki/etcd/` を使う
 - 本番 restore は API Server 停止計画とセットで扱い、まず検証環境で演習する
+- external etcd とマネージド Control Plane はこの手順の対象外とし、それぞれの製品・運用者が定める手順を使う
+- 複数 Control Plane のHA stacked etcdはこの最小例の対象外とする。HA構成では1 memberだけを差し替えず、同じsnapshotから全memberを復元して新しいlogical clusterとして起動する手順を、対象etcd版の公式disaster recovery手順に基づいて設計する
 
 ```bash
 export ETCDCTL_API=3
@@ -91,22 +93,98 @@ etcdctl \
 etcdutl snapshot status /var/backups/etcd/snapshot.db -w table
 
 # 例: etcd.yaml の値をそのまま転記する
-ETCD_NAME=\"<etcd.yaml の --name>\"
-ETCD_INITIAL_CLUSTER=\"<etcd.yaml の --initial-cluster>\"
-ETCD_INITIAL_ADVERTISE_PEER_URLS=\"<etcd.yaml の --initial-advertise-peer-urls>\"
+ETCD_NAME="<etcd.yaml の --name>"
+ETCD_INITIAL_CLUSTER="<etcd.yaml の --initial-cluster>"
+ETCD_INITIAL_ADVERTISE_PEER_URLS="<etcd.yaml の --initial-advertise-peer-urls>"
+ETCD_INITIAL_CLUSTER_TOKEN="<復旧単位で一意な新しいtoken>"
+# snapshot取得後に増え得たrevision数の安全側上限を、書き込み率と経過時間から事前検証して設定する
+REVISION_BUMP="${REVISION_BUMP:?set a validated revision increment before restore}"
 
 etcdutl \
   snapshot restore /var/backups/etcd/snapshot.db \
-  --name \"${ETCD_NAME}\" \
-  --initial-cluster \"${ETCD_INITIAL_CLUSTER}\" \
-  --initial-advertise-peer-urls \"${ETCD_INITIAL_ADVERTISE_PEER_URLS}\" \
+  --name "${ETCD_NAME}" \
+  --initial-cluster "${ETCD_INITIAL_CLUSTER}" \
+  --initial-advertise-peer-urls "${ETCD_INITIAL_ADVERTISE_PEER_URLS}" \
+  --initial-cluster-token "${ETCD_INITIAL_CLUSTER_TOKEN}" \
+  --bump-revision "${REVISION_BUMP}" \
+  --mark-compacted \
   --data-dir /var/lib/etcd-from-backup
 ```
 
-restore 後の最小反映:
-1. `/etc/kubernetes/manifests/etcd.yaml` の `name: etcd-data` に対応する `hostPath.path` を `/var/lib/etcd-from-backup` に差し替えます。
-2. `systemctl restart kubelet` で static Pod を再読込します。
-3. API Server / Controller Manager / Scheduler の再起動要否を Runbook に含めます。
+Kubernetesのcontrollerやoperatorはwatch/informer cacheを利用するため、snapshot時点へのrevision巻き戻りが状態不整合を招くことがあります。対象etcd版で`--bump-revision`と`--mark-compacted`が利用できることを確認し、書き込み率とsnapshotからの経過時間に基づく安全側のincrementを検証環境で決めます。値を未設定のまま実行できない例にしているため、固定値を無条件に転用しないでください。restoreはmember IDとcluster IDを更新し、新しいlogical clusterを作る操作として扱います。
+
+restore 後の最小反映（kubeadm stacked etcd）:
+1. `/etc/kubernetes/manifests/etcd.yaml` の`name: etcd-data`に対応する`hostPath.path`を`/var/lib/etcd-from-backup`へ差し替えます。作業用ファイルとbackupは`/etc/kubernetes/manifests`の**外**（同じfilesystem上）へ置き、YAMLと差分を検証してからatomic renameで対象ファイルへ反映します。kubeletは監視対象内のdotで始まらない全ファイルを読むため、`etcd.yaml.bak`や`etcd.yaml.tmp`を同ディレクトリへ置いてはいけません。
+
+   ```bash
+   sudo install -d -o root -g root -m 0700 /etc/kubernetes/etcd-restore-work
+   sudo cp --preserve=mode,ownership,timestamps \
+     /etc/kubernetes/manifests/etcd.yaml \
+     /etc/kubernetes/etcd-restore-work/etcd.yaml
+   sudoedit /etc/kubernetes/etcd-restore-work/etcd.yaml
+   # YAMLとhostPathの差分を運用環境のvalidatorで確認してから、同一filesystem上でatomic renameする
+   sudo mv --force /etc/kubernetes/etcd-restore-work/etcd.yaml \
+     /etc/kubernetes/manifests/etcd.yaml
+   ```
+
+2. kubelet は `/etc/kubernetes/manifests` を監視しており、manifest の変更を検知すると etcd の static Pod を自動的に再作成します。したがって、manifest の再読込だけを目的に `systemctl restart kubelet` を実行してはいけません。
+3. API Serverが復帰するまでは`crictl ps -a --name etcd`と`journalctl -u kubelet`でlocal containerとstatic Pod再作成を監視します。API Serverの疎通が戻った後、別端末で次のPod確認を実行し、変更前に記録したUIDと比較します。static Podのmirror Podは同じ名前で再作成されることがあるため、名前だけでなくUID、作成時刻、Ready状態を確認します。API Server停止中は`kubectl`による確認が失敗し得るため、local runtimeの確認を省略しません。
+
+   ```bash
+   sudo crictl ps -a --name etcd
+   journalctl -u kubelet -n 200 --no-pager
+   ```
+
+   ```bash
+   kubectl -n kube-system get pod -l component=etcd \
+     -o custom-columns='NAME:.metadata.name,UID:.metadata.uid,CREATED:.metadata.creationTimestamp,READY:.status.containerStatuses[0].ready' \
+     --watch
+   ```
+
+4. etcd Pod の再作成後、Ready 状態を確認し、snapshot restore に使用した証明書で endpoint の health と status を確認します。
+
+   ```bash
+   ETCDCTL_API=3 etcdctl \
+     --endpoints=https://127.0.0.1:2379 \
+     --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+     --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt \
+     --key=/etc/kubernetes/pki/etcd/healthcheck-client.key \
+     endpoint health
+
+   ETCDCTL_API=3 etcdctl \
+     --endpoints=https://127.0.0.1:2379 \
+     --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+     --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt \
+     --key=/etc/kubernetes/pki/etcd/healthcheck-client.key \
+     endpoint status -w table
+   ```
+
+5. local runtimeのetcd containerログで起動失敗、データディレクトリ、証明書、peer/client endpointのエラーがないことを確認します。API Server復帰後はmirror Pod名を取得し、`kubectl logs`でも同じ観点を確認します。
+
+   ```bash
+   ETCD_CONTAINER="$(sudo crictl ps -a --name etcd --quiet | head -n 1)"
+   test -n "$ETCD_CONTAINER"
+   sudo crictl logs "$ETCD_CONTAINER"
+
+   ETCD_POD="$(kubectl -n kube-system get pod -l component=etcd -o jsonpath='{.items[0].metadata.name}')"
+   kubectl -n kube-system logs "$ETCD_POD" -c etcd --since=10m
+   ```
+
+6. API Server、Controller Manager、Scheduler の再起動要否を Runbook に含めます。etcd の復旧によって各コンポーネントが自動的に復帰するかを確認し、不要な一括再起動は避けます。
+
+#### manifest 監視が働かない場合の fallback
+
+manifest の変更後も Pod の UID が変わらず、Pod、health、log の確認で変更が反映されていないと判断した場合だけ、kubelet の監視障害を診断します。まず次を確認します。
+
+```bash
+stat /etc/kubernetes/manifests/etcd.yaml
+systemctl is-active kubelet
+journalctl -u kubelet -n 200 --no-pager
+```
+
+manifest のパス、所有者・権限、YAML の妥当性、kubelet が参照する `staticPodPath`、および kubelet ログの manifest 読み込みエラーを切り分けます。原因と影響範囲を記録し、停止窓を承認したうえでなお監視が復旧しない場合に限り、`systemctl restart kubelet` を fallback として実施します。restart 後も Pod の再作成、Ready、`endpoint health`、`endpoint status`、ログを同じ順序で再確認してください。
+
+再読込だけを理由に kubelet を再起動すると、kubelet が管理する他の Control Plane static Pod にも影響して API の停止窓を広げる可能性があります。etcd のリストア自体が API Server の停止を伴う場合でも、不要な kubelet restart を重ねると可用性リスクと切り戻しの複雑さが増すため、manifest 監視による自動反映を第一選択にします。
 
 ## 注意点（運用）
 - リストアはクラスタ停止を伴う場合があります。実施条件、影響範囲、判断責任者を事前に定義してください（要確認）。
@@ -115,7 +193,7 @@ restore 後の最小反映:
 
 注意:
 - `etcdctl snapshot restore` は etcd v3.5 で非推奨、v3.6 で削除済みのため、restore/status は `etcdutl` 前提で記述します。
-- external etcd やマネージド Control Plane では、証明書パスと再起動手順が異なるため、各製品の手順に読み替えます。
+- この節のmanifest反映とkubelet restart fallbackは、**単一 Control Planeのkubeadm stacked etcd**に限定します。HA stacked etcd、external etcd、マネージド Control Planeには適用せず、全member復元、新しいlogical cluster、証明書、manifest、再起動、可用性の責任分界を含む各構成の手順を使用します。
 
 ## 実務チェック観点（最低5項目）
 - RPO/RTO とバックアップ頻度が整合している
