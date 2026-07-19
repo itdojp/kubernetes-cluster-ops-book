@@ -56,7 +56,7 @@ if (docsBody !== source.trimStart()) {
   'kubectl -n kube-system logs',
   'manifest 監視が働かない場合の fallback',
   '監視障害を診断',
-  'systemctl restart kubelet` を fallback',
+  '`systemctl restart kubelet` を fallback',
   '可用性リスク',
   'external etcd、マネージド Control Planeには適用せず',
 ].forEach((expected) => requireText(source, expected, 'chapter03 restore contract'));
