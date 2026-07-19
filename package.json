@@ -9,8 +9,9 @@
     "build": "npm run sync && node scripts/node-build.js",
     "check:metadata": "node scripts/check-metadata-consistency.js",
     "check:figure-index": "node scripts/check-figure-index.js",
+    "check:chapter03": "node scripts/check-chapter03-etcd-restore.js",
     "check:security": "npm audit",
-    "test": "npm run check:metadata && npm run check:figure-index && npm run build",
+    "test": "npm run check:metadata && npm run check:figure-index && npm run check:chapter03 && npm run build",
     "serve": "cd dist && python3 -m http.server 4000 || python -m http.server 4000",
     "dev": "npm run build && npm run serve"
   },
