@@ -162,7 +162,7 @@ restore 後の最小反映（kubeadm stacked etcd）:
 5. local runtimeのetcd containerログで起動失敗、データディレクトリ、証明書、peer/client endpointのエラーがないことを確認します。API Server復帰後はmirror Pod名を取得し、`kubectl logs`でも同じ観点を確認します。
 
    ```bash
-   ETCD_CONTAINER="$(sudo crictl ps --name etcd --quiet | head -n 1)"
+   ETCD_CONTAINER="$(sudo crictl ps -a --name etcd --quiet | head -n 1)"
    test -n "$ETCD_CONTAINER"
    sudo crictl logs "$ETCD_CONTAINER"
 
