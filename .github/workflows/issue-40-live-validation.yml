@@ -72,14 +72,15 @@ jobs:
           kubectl get --raw=/readyz
           kubectl -n kube-system wait --for=condition=Ready pod -l component=etcd --timeout=120s
 
-          docker exec "$node" sh -euxc '
-            ETCDCTL_API=3 etcdctl \
-              --endpoints=https://127.0.0.1:2379 \
-              --cacert=/etc/kubernetes/pki/etcd/ca.crt \
-              --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt \
-              --key=/etc/kubernetes/pki/etcd/healthcheck-client.key \
-              endpoint health
-          '
+          etcd_container="$(docker exec "$node" crictl ps --name etcd --quiet | head -n 1)"
+          test -n "$etcd_container"
+          docker exec "$node" crictl exec "$etcd_container" \
+            etcdctl \
+            --endpoints=https://127.0.0.1:2379 \
+            --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+            --cert=/etc/kubernetes/pki/etcd/healthcheck-client.crt \
+            --key=/etc/kubernetes/pki/etcd/healthcheck-client.key \
+            endpoint health
 
           printf 'before_uid=%s\nafter_uid=%s\nkubelet_pid=%s\nkubelet_start=%s\n' \
             "$before_uid" "$after_uid" "$kubelet_pid" "$kubelet_start"
