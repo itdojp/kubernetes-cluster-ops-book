@@ -115,6 +115,12 @@ kubeadm で自前運用する場合は、公式手順の `kubeadm upgrade plan` 
 - 検証結果（合否、観測した指標、発生した事象と対応）
 - 事後レビュー（ポストモーテム/改善バックログ、次回への反映）
 
+### 実行証跡：kubectl・API server・kubeadm・kubelet・runtimeのversion skewを判断する出力 {#figure-ch10-version-skew-inventory-01}
+
+![kubectl・API server・kubeadm・kubelet・runtimeのversion skewを判断する出力](./images/ch10-version-skew-inventory-01.png)
+
+_2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。kubectl client、API server、kubeadm、kubelet、containerd 2.2.0を同じ記録で見て、upgrade前のversion skewと対象componentを判断します。_
+
 ## 実務チェック観点（最低5項目）
 - アップグレード対象の棚卸し（アドオン/CRD/Webhook 含む）と責任範囲が明確である
 - Version Skew を一次情報（公式ポリシー）で確認し、互換性チェックが計画に含まれている

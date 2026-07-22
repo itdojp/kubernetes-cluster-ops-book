@@ -1,0 +1,6 @@
+$ kubectl label ns tenant-a pod-security.kubernetes.io/enforce=restricted pod-security.kubernetes.io/enforce-version=v1.35 pod-security.kubernetes.io/warn=restricted pod-security.kubernetes.io/warn-version=v1.35 --overwrite
+namespace/tenant-a labeled
+
+$ kubectl get ns tenant-a --show-labels
+NAME       STATUS   AGE   LABELS
+tenant-a   Active   0s    kubernetes.io/metadata.name=tenant-a,pod-security.kubernetes.io/enforce-version=v1.35,pod-security.kubernetes.io/enforce=restricted,pod-security.kubernetes.io/warn-version=v1.35,pod-security.kubernetes.io/warn=restricted

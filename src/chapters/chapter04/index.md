@@ -54,6 +54,12 @@
 代替案（例）:
 - インプレース保守が難しい場合は、ノードを使い捨て（置き換え）前提の運用へ寄せます（ノードプール運用/自動修復の活用）。
 
+### 実行証跡：Node Ready・各Pressure condition・allocatable resourceを判断する出力 {#figure-ch04-node-conditions-01}
+
+![Node Ready・各Pressure condition・allocatable resourceを判断する出力](./images/ch04-node-conditions-01.png)
+
+_2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。Ready、MemoryPressure、DiskPressure、PIDPressureとallocatable CPU・memory・Pod数を分けて見て、保守または配置判断に必要なnode状態を判断します。_
+
 ## 注意点（運用）
 - drain は「安全に退避できる」ことが前提です。PDB や分散配置が弱い場合は、先に設計/標準を見直してください。
 - ノード上のログや Events は揮発しやすいため、障害調査に必要なログは集中管理しておきます（[第9章](../chapter09/)）。

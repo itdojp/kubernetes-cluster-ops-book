@@ -1,0 +1,13 @@
+$ kubectl -n tenant-a auth can-i list pods --as=system:serviceaccount:tenant-a:readonly
+yes
+
+$ kubectl -n tenant-a auth can-i delete deployments --as=system:serviceaccount:tenant-a:readonly
+no
+DENY_GATE=PASS
+
+$ kubectl -n tenant-a get role,rolebinding
+NAME                                        CREATED AT
+role.rbac.authorization.k8s.io/pod-reader   2026-07-22T20:41:46Z
+
+NAME                                                  ROLE              AGE
+rolebinding.rbac.authorization.k8s.io/readonly-pods   Role/pod-reader   0s

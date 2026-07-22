@@ -1,0 +1,18 @@
+$ etcdctl snapshot save /tmp/[masked-snapshot].db
+{"level":"info","ts":"2026-07-22T20:41:34.660123Z","caller":"snapshot/v3_snapshot.go:83","msg":"created temporary db file","path":"/tmp/[masked-snapshot].db.part"}
+{"level":"info","ts":"2026-07-22T20:41:34.664838Z","logger":"client","caller":"v3@v3.6.6/maintenance.go:236","msg":"opened snapshot stream; downloading"}
+{"level":"info","ts":"2026-07-22T20:41:34.667093Z","caller":"snapshot/v3_snapshot.go:96","msg":"fetching snapshot","endpoint":"https://[masked-ip]:2379"}
+{"level":"info","ts":"2026-07-22T20:41:34.674200Z","logger":"client","caller":"v3@v3.6.6/maintenance.go:302","msg":"completed snapshot read; closing"}
+{"level":"info","ts":"2026-07-22T20:41:34.675276Z","caller":"snapshot/v3_snapshot.go:111","msg":"fetched snapshot","endpoint":"https://[masked-ip]:2379","size":"1.1 MB","took":"15.099432ms","etcd-version":"3.6.0"}
+{"level":"info","ts":"2026-07-22T20:41:34.675366Z","caller":"snapshot/v3_snapshot.go:121","msg":"saved","path":"/tmp/[masked-snapshot].db"}
+Snapshot saved at /tmp/[masked-snapshot].db
+Server version 3.6.0
+
+$ etcdutl snapshot status /tmp/[masked-snapshot].db -w table
++----------+----------+------------+------------+---------+
+|   HASH   | REVISION | TOTAL KEYS | TOTAL SIZE | VERSION |
++----------+----------+------------+------------+---------+
+| f506b5d0 |      517 |        362 |     1.1 MB |   3.6.0 |
++----------+----------+------------+------------+---------+
+
+SNAPSHOT_STATUS_GATE=PASS

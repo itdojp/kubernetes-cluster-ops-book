@@ -63,6 +63,12 @@ title: "第0章：前提とスコープ"
 
 各章の「実務チェック観点」は、可能な限りこの三点セットと接続して定義します。
 
+### 実行証跡：変更ID・責任者・rollback・検証証跡の記録完全性を判断するchange record検証結果 {#figure-ch00-change-record-gate-01}
+
+![変更ID・責任者・rollback・検証証跡の記録完全性を判断するchange record検証結果](./images/ch00-change-record-gate-01.png)
+
+_2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。changeId、ownerRole、rollback、verification、evidenceとPASS markerを照合し、変更前の運用記録が実行可能な状態か判断します。_
+
 ## 実務チェック観点（最低5項目）
 - 責任範囲（プラットフォーム/テナント）の明文化と例外運用の管理
 - 監視（SLI/SLO、アラート閾値、ノイズ制御、オンコール体制）

@@ -1,0 +1,13 @@
+$ kubectl get --raw /metrics | grep -m 6 ^'apiserver_current_inflight_requests'
+apiserver_current_inflight_requests{request_kind="mutating"} 2
+apiserver_current_inflight_requests{request_kind="readOnly"} 1
+
+$ kubectl get --raw /metrics | grep -m 6 ^'workqueue_depth'
+workqueue_depth{name="APIServiceRegistrationController"} 0
+workqueue_depth{name="DiscoveryController"} 0
+workqueue_depth{name="DynamicCABundle-aggregator-proxy-cert"} 0
+workqueue_depth{name="DynamicCABundle-client-ca-bundle"} 0
+workqueue_depth{name="DynamicCABundle-request-header"} 0
+workqueue_depth{name="DynamicCABundle-serving-cert"} 0
+
+METRICS_ENDPOINT_GATE=PASS

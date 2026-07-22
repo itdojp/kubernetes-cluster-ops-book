@@ -1,0 +1,19 @@
+$ kubectl -n operations-lab get endpointslice -l kubernetes.io/service-name=web
+NAME        ADDRESSTYPE   PORTS   ENDPOINTS               AGE
+web-lkddl   IPv4          80      [masked-ip],[masked-ip]   29s
+
+$ kubectl -n operations-lab patch svc web -p '{"spec":{"selector":{"app":"wrong"}}}'
+service/web patched
+
+$ kubectl -n operations-lab get endpointslice -l kubernetes.io/service-name=web
+NAME        ADDRESSTYPE   PORTS     ENDPOINTS   AGE
+web-lkddl   IPv4          <unset>   <unset>     31s
+
+$ kubectl -n operations-lab patch svc web -p '{"spec":{"selector":{"app":"web"}}}'
+service/web patched
+
+$ kubectl -n operations-lab get endpointslice -l kubernetes.io/service-name=web
+NAME        ADDRESSTYPE   PORTS   ENDPOINTS               AGE
+web-lkddl   IPv4          80      [masked-ip],[masked-ip]   33s
+
+SERVICE_RECOVERY_GATE=PASS

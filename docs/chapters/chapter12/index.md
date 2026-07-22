@@ -69,6 +69,12 @@ GitOps は「Git を正（source of truth）として、クラスタの状態を
 
 ポリシーを厳格にしすぎると、回避策（例外 namespace の乱立）を誘発するため、段階導入（warn → enforce）を推奨します。
 
+### 実行証跡：PSS違反manifestの拒否と準拠manifestのserver dry-run成功を判断する出力 {#figure-ch12-policy-gate-01}
+
+![PSS違反manifestの拒否と準拠manifestのserver dry-run成功を判断する出力](./images/ch12-policy-gate-01.png)
+
+_2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。BusyBox 1.36.1のunsafe Podがrestricted policyで拒否され、準拠Podがserver dry-runを通ることと両gate markerを見て、automation guardrailを判断します。_
+
 ## 実務チェック観点（最低5項目）
 - source of truth（Git/Runbook 等）が定義され、手動変更（ドリフト）を抑止する運用がある
 - テナント払い出し（namespace/RBAC/PSS/Quota 等）がテンプレ化され、再現性が担保されている

@@ -1,0 +1,13 @@
+$ kubectl version
+Client Version: v1.35.1
+Kustomize Version: v5.7.1
+Server Version: v1.35.0
+
+$ kubeadm version -o short  # executed inside the control-plane node
+v1.35.0
+
+$ kubectl get node -o custom-columns=NAME:.metadata.name,KUBELET:.status.nodeInfo.kubeletVersion,RUNTIME:.status.nodeInfo.containerRuntimeVersion
+NAME                   KUBELET   RUNTIME
+[masked-node]   v1.35.0   containerd://2.2.0
+
+VERSION_SKEW_INVENTORY=RECORDED

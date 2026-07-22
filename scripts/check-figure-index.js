@@ -3,310 +3,162 @@
 const fs = require('fs');
 const path = require('path');
 
-function findRepoRoot(startDir) {
-  let current = path.resolve(startDir);
-  while (true) {
-    if (fs.existsSync(path.join(current, 'book-config.json')) && fs.existsSync(path.join(current, 'package.json'))) {
-      return current;
-    }
-    const parent = path.dirname(current);
-    if (parent === current) {
-      throw new Error('Repository root with book-config.json and package.json was not found.');
-    }
-    current = parent;
-  }
-}
+const ROOT = path.resolve(__dirname, '..');
+const APPENDIX_ID = 'appendix-d';
+const APPENDIX_ROUTE = '/appendices/appendix-d/';
+const APPENDIX_DESCRIPTION = '全13章で公開する14点のP0 visual evidenceと確認観点';
+const EXPECTED = [
+  ['ch00-change-record', 'chapter00', 'ch00-change-record-gate-01.png', 'figure-ch00-change-record-gate-01', 'figure-index-ch00-change-record-gate-01'],
+  ['ch01-cluster-inventory', 'chapter01', 'ch01-cluster-inventory-01.png', 'figure-ch01-cluster-inventory-01', 'figure-index-ch01-cluster-inventory-01'],
+  ['ch02-control-plane-readyz', 'chapter02', 'ch02-control-plane-readyz-01.png', 'figure-ch02-control-plane-readyz-01', 'figure-index-ch02-control-plane-readyz-01'],
+  ['ch03-etcd-snapshot-status', 'chapter03', 'ch03-etcd-snapshot-status-01.png', 'figure-ch03-etcd-snapshot-status-01', 'figure-index-ch03-etcd-snapshot-status-01'],
+  ['ch04-node-conditions', 'chapter04', 'ch04-node-conditions-01.png', 'figure-ch04-node-conditions-01', 'figure-index-ch04-node-conditions-01'],
+  ['ch05-dns-service', 'chapter05', 'ch05-dns-service-check-01.png', 'figure-ch05-dns-service-check-01', 'figure-index-ch05-dns-service-check-01'],
+  ['ch06-storage-pvc', 'chapter06', 'ch06-storage-pvc-check-01.png', 'figure-ch06-storage-pvc-check-01', 'figure-index-ch06-storage-pvc-check-01'],
+  ['ch07-rbac-can-i', 'chapter07', 'ch07-rbac-can-i-01.png', 'figure-ch07-rbac-can-i', 'figure-index-ch07-rbac-can-i'],
+  ['ch07-pss-namespace-label', 'chapter07', 'ch07-pss-namespace-label-02.png', 'figure-ch07-pss-namespace-label', 'figure-index-ch07-pss-namespace-label'],
+  ['ch08-quota-limitrange', 'chapter08', 'ch08-quota-limitrange-01.png', 'figure-ch08-quota-limitrange-01', 'figure-index-ch08-quota-limitrange-01'],
+  ['ch09-apiserver-metrics', 'chapter09', 'ch09-apiserver-metrics-01.png', 'figure-ch09-apiserver-metrics-01', 'figure-index-ch09-apiserver-metrics-01'],
+  ['ch10-version-skew', 'chapter10', 'ch10-version-skew-inventory-01.png', 'figure-ch10-version-skew-inventory-01', 'figure-index-ch10-version-skew-inventory-01'],
+  ['ch11-service-recovery', 'chapter11', 'ch11-service-recovery-01.png', 'figure-ch11-service-recovery-01', 'figure-index-ch11-service-recovery-01'],
+  ['ch12-policy-gate', 'chapter12', 'ch12-policy-gate-01.png', 'figure-ch12-policy-gate-01', 'figure-index-ch12-policy-gate-01'],
+];
 
-const repoRoot = findRepoRoot(process.cwd());
-const errors = [];
-
-const figureIndex = {
-  route: '/appendices/appendix-d/',
-  entry: {
-    id: 'appendix-d',
-    title: '付録D：図表索引',
-    description: '第7章で公開している PNG 図版の用途と確認観点',
-    order: 18,
-    srcPath: 'src/appendices/appendix-d/index.md',
-    docsPath: 'docs/appendices/appendix-d/index.md',
-    navPath: '/appendices/appendix-d/',
-  },
-  chapter: {
-    title: '第7章：認証・認可と基本セキュリティ',
-    srcPath: 'src/chapters/chapter07/index.md',
-    docsPath: 'docs/chapters/chapter07/index.md',
-    route: '/chapters/chapter07/',
-  },
-  figures: [
-    {
-      indexAnchor: 'figure-index-ch07-rbac-can-i',
-      anchor: 'figure-ch07-rbac-can-i',
-      indexHeading: '図7-1：RBAC の最小権限チェック（例）',
-      alt: 'RBAC の最小権限チェック（例）',
-      sourcePath: './images/ch07-rbac-can-i-01.png',
-      purpose: 'ServiceAccount に付与した Role と RoleBinding が、必要な `list pods` だけを許可する最小権限になっていることを確認する例です。',
-      inspection: '`kubectl auth can-i list pods` が `yes` になることに加え、許可していない操作が `no` になることを確認します。対象 namespace、ServiceAccount、API リソース、verb が意図した範囲に限定されているかを本文の RBAC 定義と照合してください。',
-    },
-    {
-      indexAnchor: 'figure-index-ch07-pss-namespace-label',
-      anchor: 'figure-ch07-pss-namespace-label',
-      indexHeading: '図7-2：PSS の適用（例）',
-      alt: 'PSS の適用（例）',
-      sourcePath: './images/ch07-pss-namespace-label-02.png',
-      purpose: 'tenant namespace に Pod Security Admission の `restricted` プロファイルを適用するラベル設定例を確認します。',
-      inspection: '`pod-security.kubernetes.io/enforce`、`warn` と各 `*-version` ラベルが対象 namespace に付与されていること、`--overwrite` による更新対象が意図どおりであることを確認します。例外 namespace は本文の方針どおり根拠・期限・代替策とともに管理してください。',
-    },
-  ],
-};
-
-function addError(message) {
-  errors.push(message);
-}
-
-function readText(relPath) {
-  return fs.readFileSync(path.join(repoRoot, relPath), 'utf8');
-}
-
-function readJson(relPath) {
-  return JSON.parse(readText(relPath));
-}
-
-function collectFiles(relDir) {
-  const files = [];
-  for (const entry of fs.readdirSync(path.join(repoRoot, relDir), { withFileTypes: true })) {
-    const relPath = path.posix.join(relDir, entry.name);
-    if (entry.isDirectory()) files.push(...collectFiles(relPath));
-    else if (entry.isFile()) files.push(relPath);
-  }
-  return files;
-}
-
-function assertEqual(actual, expected, label) {
-  if (actual !== expected) {
-    addError(`${label} mismatch: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
-  }
-}
-
-function assertArrayEqual(actual, expected, label) {
-  if (actual.length !== expected.length || actual.some((value, index) => value !== expected[index])) {
-    addError(`${label} mismatch: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
-  }
-}
-
-function assertContains(text, expected, label) {
-  if (!text.includes(expected)) {
-    addError(`${label} does not contain ${JSON.stringify(expected)}`);
-  }
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
+function fail(message) { throw new Error(`figure-index contract: ${message}`); }
+function assert(condition, message) { if (!condition) fail(message); }
+function read(relativePath) { return fs.readFileSync(path.join(ROOT, relativePath), 'utf8'); }
+function count(text, value) { return text.split(value).length - 1; }
+function escapeRegExp(value) { return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 function stripFrontMatter(markdown) {
   const match = markdown.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/);
   return match ? markdown.slice(match[0].length) : markdown;
 }
-
-function markdownImageReferences(markdown) {
-  const references = [];
-  const pattern = /!\[([^\]]*)\]\(([^)\s]+\.png)\)/g;
-  let match;
-  while ((match = pattern.exec(markdown)) !== null) {
-    references.push({ alt: match[1], sourcePath: match[2], index: match.index });
+function collectFiles(relativeDirectory) {
+  const directory = path.join(ROOT, relativeDirectory);
+  const files = [];
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const relativePath = path.posix.join(relativeDirectory, entry.name);
+    if (entry.isDirectory()) files.push(...collectFiles(relativePath));
+    else if (entry.isFile()) files.push(relativePath);
   }
-  return references;
+  return files;
+}
+function pngReferences(markdown) {
+  return [...markdown.matchAll(/!\[([^\]]*)\]\(([^)]+\.png)(?:#[^)]+)?\)/g)].map((match) => ({ alt: match[1], target: match[2] }));
+}
+function chapterTitle(chapter) {
+  return read(`src/chapters/${chapter}/index.md`).split(/\r?\n/, 1)[0].replace(/^#\s+/, '');
 }
 
-function explicitAnchors(markdown) {
-  return Array.from(markdown.matchAll(/\{#([A-Za-z0-9_-]+)\}/g), (match) => match[1]);
+function checkConfiguration(config) {
+  assert(config.ux?.modules?.figureIndex === true, 'ux.modules.figureIndex must remain true');
+  const appendices = config.structure?.appendices;
+  assert(Array.isArray(appendices), 'structure.appendices must be configured');
+  const matches = appendices.filter((entry) => entry.id === APPENDIX_ID);
+  assert(matches.length === 1, 'Appendix D must be configured exactly once');
+  const appendix = matches[0];
+  assert(appendix.title === '付録D：図表索引', 'Appendix D title must remain reader-facing');
+  assert(appendix.description === APPENDIX_DESCRIPTION, 'Appendix D description must identify the 13-chapter/14-figure inventory');
+  assert(appendix.order === 18 && appendix.srcPath === 'src/appendices/appendix-d/index.md' && appendix.docsPath === 'docs/appendices/appendix-d/index.md' && appendix.navPath === APPENDIX_ROUTE, 'Appendix D route/order/source/generated paths must remain stable');
+  const appendixCIndex = appendices.findIndex((entry) => entry.id === 'appendix-c');
+  const appendixDIndex = appendices.findIndex((entry) => entry.id === APPENDIX_ID);
+  assert(appendixCIndex >= 0 && appendixDIndex === appendixCIndex + 1, 'Appendix D must immediately follow Appendix C');
+  assert(config.structure?.afterword?.order === 19, 'afterword must immediately follow Appendix D');
+  const formatter = JSON.parse(read('book-formatter-config.json'));
+  assert(JSON.stringify(formatter.ux) === JSON.stringify(config.ux), 'formatter ux must match book-config.json');
+  assert(JSON.stringify(formatter.structure) === JSON.stringify(config.structure), 'formatter structure must match book-config.json');
 }
 
-function validateUniqueAnchors(markdown, label) {
-  const seen = new Set();
-  for (const anchor of explicitAnchors(markdown)) {
-    if (seen.has(anchor)) addError(`${label} has a duplicate explicit anchor: ${anchor}`);
-    seen.add(anchor);
+function checkManifest() {
+  const manifest = JSON.parse(read('src/assets/visual-evidence/manifest.json'));
+  assert(manifest.issue === 16 && Array.isArray(manifest.entries), 'Issue 16 manifest must be available');
+  assert(manifest.entries.length === EXPECTED.length, `manifest must contain exactly ${EXPECTED.length} entries`);
+  manifest.entries.forEach((entry, index) => {
+    const expected = EXPECTED[index];
+    assert(expected && [entry.id, entry.chapter, path.basename(entry.file), entry.anchor, entry.indexAnchor].every((value, position) => value === expected[position]), `manifest entry ${index + 1} differs from the fixed inventory/order`);
+    assert(entry.alt && entry.indexPurpose && entry.indexInspection, `${entry.id || index}: figure index metadata is incomplete`);
+  });
+  return manifest.entries;
+}
+
+function checkChapterInventory(entries) {
+  const actualReferences = [];
+  const sourceMarkdown = collectFiles('src').filter((file) => file.endsWith('.md')).sort();
+  const docsMarkdown = collectFiles('docs').filter((file) => file.endsWith('.md')).sort();
+  for (const file of sourceMarkdown) {
+    for (const reference of pngReferences(read(file))) {
+      actualReferences.push(path.posix.normalize(path.posix.join(path.posix.dirname(file.replace(/^src\//, '')), reference.target)));
+    }
+  }
+  const expectedReferences = entries.map((entry) => entry.file.replace(/^src\//, ''));
+  assert(JSON.stringify(actualReferences) === JSON.stringify(expectedReferences), `source markdown PNG references must be the exact fixed inventory/order; got ${JSON.stringify(actualReferences)}`);
+
+  const sourceAssets = collectFiles('src').filter((file) => file.toLowerCase().endsWith('.png')).sort();
+  const expectedAssets = entries.map((entry) => entry.file).sort();
+  assert(JSON.stringify(sourceAssets) === JSON.stringify(expectedAssets), `source PNG assets must be one-to-one with the manifest; got ${JSON.stringify(sourceAssets)}`);
+
+  const sourceAll = sourceMarkdown.map(read).join('\n');
+  const docsAll = docsMarkdown.map(read).join('\n');
+  for (const entry of entries) {
+    const filename = path.basename(entry.file);
+    const sourceChapter = read(`src/chapters/${entry.chapter}/index.md`).replace(/\r\n/g, '\n');
+    const docsChapter = read(`docs/chapters/${entry.chapter}/index.md`).replace(/\r\n/g, '\n');
+    const marker = `![${entry.alt}](./images/${filename})`;
+    const anchorPattern = new RegExp(`^### .+ \\{#${escapeRegExp(entry.anchor)}\\}\\n\\n${escapeRegExp(marker)}$`, 'm');
+    assert(anchorPattern.test(sourceChapter), `${entry.id}: canonical stable anchor must immediately precede the image`);
+    assert(anchorPattern.test(stripFrontMatter(docsChapter)), `${entry.id}: generated stable anchor must immediately precede the image`);
+    assert(count(sourceAll, `{#${entry.anchor}}`) === 1, `${entry.id}: canonical figure anchor must be globally unique`);
+    assert(count(docsAll, `{#${entry.anchor}}`) === 1, `${entry.id}: generated figure anchor must be globally unique`);
+    const docsAsset = entry.docsFile;
+    assert(fs.existsSync(path.join(ROOT, docsAsset)), `${entry.id}: generated PNG is missing`);
+    assert(fs.readFileSync(path.join(ROOT, entry.file)).equals(fs.readFileSync(path.join(ROOT, docsAsset))), `${entry.id}: generated PNG differs from canonical source`);
   }
 }
 
-function validateFigureAnchorPrecedesImage(markdown, reference, figure, label) {
-  const preceding = markdown.slice(0, reference.index);
-  const anchorAtEnd = new RegExp(`(?:^|\\n)#{1,6}[^\\n]*\\{#${escapeRegExp(figure.anchor)}\\}\\s*\\n\\s*$`);
-  if (!anchorAtEnd.test(preceding)) {
-    addError(`${label} must place stable anchor ${figure.anchor} immediately before ${figure.sourcePath}`);
-  }
-}
-
-function validateConfig(config) {
-  assertEqual(config.ux && config.ux.modules && config.ux.modules.figureIndex, true, 'book-config.json ux.modules.figureIndex');
-
-  const appendices = (config.structure && config.structure.appendices) || [];
-  const matchingEntries = appendices.filter((entry) => entry.navPath === figureIndex.route);
-  assertEqual(matchingEntries.length, 1, 'book-config.json figure index route count');
-  const entry = matchingEntries[0];
-  if (!entry) return;
-
-  for (const [key, expected] of Object.entries(figureIndex.entry)) {
-    assertEqual(entry[key], expected, `book-config.json Appendix D ${key}`);
-  }
-
-  const appendixCIndex = appendices.findIndex((candidate) => candidate.id === 'appendix-c');
-  const appendixDIndex = appendices.findIndex((candidate) => candidate.id === figureIndex.entry.id);
-  const afterword = config.structure && config.structure.afterword;
-  if (appendixCIndex === -1 || appendixDIndex !== appendixCIndex + 1) {
-    addError('book-config.json must place Appendix D immediately after Appendix C for previous navigation.');
-  }
-  if (!afterword || afterword.order !== figureIndex.entry.order + 1) {
-    addError('book-config.json must place afterword immediately after Appendix D for next navigation.');
-  }
-}
-
-function validateFormatterConfig(config) {
-  const formatterConfig = readJson('book-formatter-config.json');
-  assertEqual(
-    JSON.stringify(formatterConfig.ux),
-    JSON.stringify(config.ux),
-    'book-formatter-config.json ux',
-  );
-  assertEqual(
-    JSON.stringify(formatterConfig.structure),
-    JSON.stringify(config.structure),
-    'book-formatter-config.json structure',
-  );
-}
-
-function validateSourceDocsSync(srcPath, docsPath, label) {
-  const source = readText(srcPath);
-  const docsBody = stripFrontMatter(readText(docsPath));
-  assertEqual(docsBody, source.trimStart(), `${label} src/docs body`);
-  return { source, docs: docsBody };
-}
-
-function validateChapterInventory(chapterSource, chapterDocs) {
-  const sourceReferences = markdownImageReferences(chapterSource);
-  const docsReferences = markdownImageReferences(chapterDocs);
-  const expectedPaths = figureIndex.figures.map((figure) => figure.sourcePath);
-  const expectedAlts = figureIndex.figures.map((figure) => figure.alt);
-
-  assertArrayEqual(sourceReferences.map((reference) => reference.sourcePath), expectedPaths, 'src chapter07 referenced PNG inventory/order');
-  assertArrayEqual(sourceReferences.map((reference) => reference.alt), expectedAlts, 'src chapter07 referenced PNG titles/order');
-  assertArrayEqual(docsReferences.map((reference) => reference.sourcePath), expectedPaths, 'docs chapter07 referenced PNG inventory/order');
-  assertArrayEqual(docsReferences.map((reference) => reference.alt), expectedAlts, 'docs chapter07 referenced PNG titles/order');
-
-  validateUniqueAnchors(chapterSource, 'src chapter07');
-  validateUniqueAnchors(chapterDocs, 'docs chapter07');
-
-  figureIndex.figures.forEach((figure, index) => {
-    const sourceReference = sourceReferences[index];
-    const docsReference = docsReferences[index];
-    if (sourceReference) validateFigureAnchorPrecedesImage(chapterSource, sourceReference, figure, 'src chapter07');
-    if (docsReference) validateFigureAnchorPrecedesImage(chapterDocs, docsReference, figure, 'docs chapter07');
-    assertEqual(explicitAnchors(chapterSource).filter((anchor) => anchor === figure.anchor).length, 1, `src chapter07 anchor ${figure.anchor} count`);
-    assertEqual(explicitAnchors(chapterDocs).filter((anchor) => anchor === figure.anchor).length, 1, `docs chapter07 anchor ${figure.anchor} count`);
+function checkIndex(entries) {
+  const source = read('src/appendices/appendix-d/index.md').replace(/\r\n/g, '\n');
+  const docs = stripFrontMatter(read('docs/appendices/appendix-d/index.md')).replace(/\r\n/g, '\n');
+  assert(docs === source, 'generated Appendix D body must exactly match canonical source');
+  assert(pngReferences(source).length === 0, 'Appendix D must link to figures instead of embedding duplicate images');
+  assert(source.includes('実際に参照している14点') && source.includes('合成したoperational stateではありません'), 'Appendix D must state scope and authenticity');
+  const headings = [...source.matchAll(/^### 図D-(\d{2})：(.+) \{#([^}]+)\}$/gm)];
+  assert(headings.length === entries.length, `Appendix D must contain exactly ${entries.length} indexed entries`);
+  headings.forEach((heading, index) => {
+    const entry = entries[index];
+    const number = String(index + 1).padStart(2, '0');
+    assert(heading[1] === number && heading[2] === entry.alt && heading[3] === entry.indexAnchor, `${entry.id}: index number/title/anchor must match the manifest`);
+    const end = index + 1 < headings.length ? headings[index + 1].index : source.length;
+    const section = source.slice(heading.index, end);
+    const title = chapterTitle(entry.chapter);
+    assert(section.includes(`- **章**: [${title}](../../chapters/${entry.chapter}/)`), `${entry.id}: index chapter link is missing`);
+    assert(section.includes(`- **本文**: [図を開く](../../chapters/${entry.chapter}/#${entry.anchor})`), `${entry.id}: direct figure link is missing`);
+    assert(section.includes(`- **ファイル**: \`${path.basename(entry.file)}\``), `${entry.id}: filename is missing`);
+    assert(section.includes(`- **目的**: ${entry.indexPurpose}`), `${entry.id}: purpose differs from the manifest`);
+    assert(section.includes(`- **確認の観点**: ${entry.indexInspection}`), `${entry.id}: inspection guidance differs from the manifest`);
+    assert(count(source, `{#${entry.indexAnchor}}`) === 1, `${entry.id}: index anchor must be unique`);
+    assert(source.slice(0, heading.index).lastIndexOf(`## ${title}`) >= 0, `${entry.id}: entry must be under its chapter heading`);
   });
 }
 
-function validateGlobalPngInventory() {
-  const expectedReferences = figureIndex.figures.map((figure) =>
-    path.posix.join('chapters/chapter07', figure.sourcePath.replace(/^\.\//, '')),
-  );
-  const actualReferences = [];
-
-  for (const file of collectFiles('src').filter((candidate) => candidate.endsWith('.md')).sort()) {
-    for (const reference of markdownImageReferences(readText(file))) {
-      actualReferences.push(
-        path.posix.normalize(
-          path.posix.join(path.posix.dirname(file.replace(/^src\//, '')), reference.sourcePath),
-        ),
-      );
-    }
-  }
-  assertArrayEqual(actualReferences, expectedReferences, 'global src referenced PNG inventory/order');
-
-  const sourceAssets = collectFiles('src')
-    .filter((candidate) => candidate.toLowerCase().endsWith('.png'))
-    .sort();
-  const expectedAssets = expectedReferences.map((reference) => `src/${reference}`).sort();
-  assertArrayEqual(sourceAssets, expectedAssets, 'global src PNG asset inventory');
-
-  for (const sourceAsset of expectedAssets) {
-    const docsAsset = sourceAsset.replace(/^src\//, 'docs/');
-    if (!fs.existsSync(path.join(repoRoot, docsAsset))) {
-      addError(`generated PNG is missing: ${docsAsset}`);
-      continue;
-    }
-    const sourceBytes = fs.readFileSync(path.join(repoRoot, sourceAsset));
-    const docsBytes = fs.readFileSync(path.join(repoRoot, docsAsset));
-    if (!sourceBytes.equals(docsBytes)) addError(`generated PNG differs from source: ${docsAsset}`);
-  }
-}
-
-function validateIndexPage(indexSource, indexDocs) {
-  const expectedHeadings = figureIndex.figures.map((figure) => figure.indexHeading);
-  const expectedIndexAnchors = figureIndex.figures.map((figure) => figure.indexAnchor);
-  const expectedTargets = figureIndex.figures.map((figure) => figure.anchor);
-
-  for (const [label, markdown] of [['src Appendix D', indexSource], ['docs Appendix D', indexDocs]]) {
-    validateUniqueAnchors(markdown, label);
-    assertEqual(markdownImageReferences(markdown).length, 0, `${label} embedded PNG count`);
-
-    const headings = Array.from(markdown.matchAll(/^### (図7-\d+：.+) \{#([A-Za-z0-9_-]+)\}$/gm));
-    assertArrayEqual(headings.map((match) => match[1]), expectedHeadings, `${label} indexed figure headings/order`);
-    assertArrayEqual(headings.map((match) => match[2]), expectedIndexAnchors, `${label} indexed figure anchors/order`);
-
-    const targets = Array.from(
-      markdown.matchAll(/\[図を開く\]\(\.\.\/\.\.\/chapters\/chapter07\/#([A-Za-z0-9_-]+)\)/g),
-      (match) => match[1],
-    );
-    assertArrayEqual(targets, expectedTargets, `${label} direct figure link targets/order`);
-
-    figureIndex.figures.forEach((figure) => {
-      assertContains(markdown, `- **章**: [${figureIndex.chapter.title}](../../chapters/chapter07/)`, `${label} ${figure.indexHeading} chapter`);
-      assertContains(markdown, `- **目的**: ${figure.purpose}`, `${label} ${figure.indexHeading} purpose`);
-      assertContains(markdown, `- **確認観点**: ${figure.inspection}`, `${label} ${figure.indexHeading} inspection guidance`);
-    });
-  }
-}
-
-function validateNavigationAndTop(config) {
-  const sourceTop = readText('src/index.md');
-  const docsTop = stripFrontMatter(readText('docs/index.md'));
-  const topLink = '- [付録D：図表索引](appendices/appendix-d/)';
-  assertContains(sourceTop, topLink, 'src top page Appendix D link');
-  assertContains(docsTop, topLink, 'docs top page Appendix D link');
-
-  const navigation = readText('docs/_data/navigation.yml');
+function checkReaderNavigation() {
+  const topLink = '[付録D：図表索引](appendices/appendix-d/)';
+  assert(read('src/index.md').includes(topLink), 'canonical top page must link to Appendix D');
+  assert(read('docs/index.md').includes(topLink), 'generated top page must link to Appendix D');
+  const navigation = read('docs/_data/navigation.yml');
   const appendixC = '  - title: "付録C：参考リンク集"\n    path: "/appendices/appendix-c/"';
   const appendixD = '  - title: "付録D：図表索引"\n    path: "/appendices/appendix-d/"';
-  assertContains(navigation, appendixD, 'sidebar Appendix D item');
-  if (!(navigation.indexOf(appendixC) < navigation.indexOf(appendixD))) {
-    addError('docs/_data/navigation.yml must list Appendix C before Appendix D for previous navigation.');
-  }
-
-  const appendices = config.structure.appendices;
-  assertEqual(appendices.filter((entry) => entry.id === 'appendix-d').length, 1, 'book-config.json Appendix D entry count');
+  assert(count(navigation, appendixD) === 1, 'sidebar must contain Appendix D exactly once');
+  assert(navigation.indexOf(appendixC) < navigation.indexOf(appendixD), 'sidebar must place Appendix D after Appendix C');
 }
 
 function main() {
-  const config = readJson('book-config.json');
-  validateConfig(config);
-  validateFormatterConfig(config);
-
-  const chapter = validateSourceDocsSync(figureIndex.chapter.srcPath, figureIndex.chapter.docsPath, 'chapter07');
-  const index = validateSourceDocsSync(figureIndex.entry.srcPath, figureIndex.entry.docsPath, 'Appendix D');
-  validateChapterInventory(chapter.source, chapter.docs);
-  validateGlobalPngInventory();
-  validateIndexPage(index.source, index.docs);
-  validateNavigationAndTop(config);
-
-  if (errors.length > 0) {
-    console.error('❌ Figure index contract check failed:');
-    for (const error of errors) console.error(`- ${error}`);
-    process.exit(1);
-  }
-
-  console.log(`✅ Figure index contract check passed (${figureIndex.figures.length} referenced PNGs, Appendix D route ${figureIndex.route}).`);
+  const config = JSON.parse(read('book-config.json'));
+  checkConfiguration(config);
+  const entries = checkManifest();
+  checkChapterInventory(entries);
+  checkIndex(entries);
+  checkReaderNavigation();
+  console.log(`✅ Figure index contract passed: ${entries.length} referenced PNGs, stable anchors, direct links, navigation, and src/docs generation verified.`);
 }
 
-main();
+try { main(); } catch (error) { console.error(`❌ ${error.message}`); process.exit(1); }

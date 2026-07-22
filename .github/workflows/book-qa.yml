@@ -12,6 +12,7 @@ jobs:
   qa:
     runs-on: ubuntu-latest
     permissions:
+      actions: read
       contents: read
       pages: read
 
@@ -43,6 +44,11 @@ jobs:
 
       - name: Local npm QA
         run: npm test
+
+      - name: Verify immutable capture provenance
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm run check:capture-provenance
 
       - name: Install dependencies (book-formatter)
         working-directory: book-formatter

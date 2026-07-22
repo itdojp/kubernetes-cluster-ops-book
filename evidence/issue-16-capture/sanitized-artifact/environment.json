@@ -1,0 +1,10 @@
+{
+  "os": "Ubuntu 24.04 GitHub-hosted runner",
+  "kubernetes": "v1.35.0",
+  "kubectl": "v1.35.1",
+  "kind": "v0.31.0",
+  "containerProvider": "Docker 28.0.4",
+  "storageProvisioner": "local-path-provisioner v0.0.34",
+  "captureTimezone": "Asia/Tokyo (UTC+09:00)",
+  "capturedAt": "2026-07-23"
+}

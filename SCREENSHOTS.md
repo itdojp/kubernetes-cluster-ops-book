@@ -55,13 +55,37 @@
 
 ## スクリーンショット候補チェックリスト（章別）
 
-本セクションは Issue #7 の内容を「何を撮るか」「前提状態」の観点で章別に整理したチェックリストです（画像追加は別PRで実施）。
+本セクションは Issue #7 の候補を「何を撮るか」「前提状態」の観点で整理し、Issue #16で取得済みのP0実行証跡をチェック済みで示します。未チェック項目は将来候補であり、現在の公開inventoryには含めません。
+
+## provenanceとfail-closed検査
+
+- 正本inventoryは `src/assets/visual-evidence/manifest.json` です。撮影run、取得日/JST、環境/version、source command、mask項目、表示transcript、PNG hash/dimension/sizeを記録します。
+- raw transcript（runner logを含む）、kubeconfig、credential、disposable clusterは公開・commitしません。例外として、artifactから削除前にdownloadして機微情報検査したsanitized transcript 14点と環境metadataを、真正性監査専用に `evidence/issue-16-capture/sanitized-artifact/` へ固定します。disposable fixture名はartifact由来であることを監査できるよう保持し、公開PNGへは決定的な置換だけを適用します。
+- `npm run check:visual-evidence` は固定14点、src/docs同期、参照、alt/即時caption、PNG metadata/CRC/decode/hash、重複、機微情報、responsive CSS、Book QA integrationをfail-closedで検査します。
+- PNGは、機微情報検査対象のmanifest transcriptだけを可変入力とする `scripts/render-visual-evidence.js` で決定的に生成します。validatorはPNG全byteを再生成して比較するため、manifest外の文字・pixelを後から画像へ混入できません。
+- Book QAの `npm run check:capture-provenance` はGitHub APIでcapture run、repository、head commit、workflow/script blob、job/step成功、artifact cleanupを再確認します。upload時artifact digest、download済みsanitized file-set hash、entryごとのsource file/hash、公開置換、公開transcript集合hashをmanifestとvalidatorへ固定し、captureからPNGまでを接続します。
+- 合成したoperational stateやplaceholderを実行証跡として扱いません。真正な出力を取得できない場合は画像を作らず、blockerと再取得条件をIssueへ残します。
+
+### capture runの保持と更新
+
+- `npm run check:capture-provenance` はattested GitHub Actions runと固定commit/source blobをオンライン参照します。GitHub側の保持期間満了または手動削除でrun/sourceが404になった場合、Book QAは意図どおりfail-closedで停止します。404を無視する変更や検査の条件付き実行は禁止します。
+- 保持期限だけを延長する目的で現在のattestationを書き換えません。定期的な再実行は不要で、404または証跡更新要件が発生した時点で次の完全なrefreshを行います。
+- refresh手順:
+  1. source Issueを再openまたは新規作成し、隔離した一時workflow/scriptをreviewする。
+  2. disposable環境でcaptureし、run、repository、head SHA、workflow/script blob、job/step成功、upload-artifact digestを記録する。
+  3. artifactを削除する前にdownloadし、token、個人識別子、path、IP等の機微情報scanを行う。raw runner logは保存しない。
+  4. `evidence/issue-16-capture/sanitized-artifact/` をdownload済みsanitized file setで置換し、固定file-set hashと各file hashを更新する。
+  5. source artifactから公開transcriptへの差分が許可済みの決定的置換だけであることをreviewし、manifestのrun/source/artifact/transform attestationを更新する。
+  6. `scripts/render-visual-evidence.js --write`、`npm run check:visual-evidence`、`npm run check:capture-provenance`、Book QAを実行し、通常のPR review/mergeを行う。
+  7. download済みfile setと証跡chainを確認後にGitHub artifactと一時branch/workflowを削除する。run自体は保持する。
 
 方針:
 - ツール固有の UI（例: Grafana/Prometheus/Alertmanager/Loki 等）はあくまで「例」とし、本文はツール非依存の型を維持する。
 - スクリーンショットは「観測 → 判断 → 復旧（または変更）」の最小セットを意識する。
 
 ### 第0章：前提とスコープ
+
+- [x] 端末: change recordの必須項目と検証gate（責任者、rollback、verification、evidence）
 
 前提（例）:
 - 責任分界や申請フローが分かる運用物（チケット/申請フォーム/手順書）が存在する
@@ -73,7 +97,7 @@
 前提（例）:
 - クラスタの棚卸し（Inventory）情報を取得できる（IaC/アドオン管理/運用台帳等）
 
-- [ ] クラスタ棚卸し（Inventory）のサンプル（アドオン一覧、ノードプール、CRD/Webhook、外部依存: DNS/LB/レジストリ）
+- [x] クラスタ棚卸し（Inventory）のサンプル（API、node/runtime、CRD、基盤Deployment）
 
 ### 第2章：コントロールプレーン設計
 
@@ -82,7 +106,7 @@
 - API ヘルスエンドポイント閲覧権限がある（RBAC）
 - （任意）監視基盤が導入済み
 
-- [ ] 端末: API の健全性確認（`kubectl get --raw='/readyz?verbose'` 等）
+- [x] 端末: API の健全性確認（`kubectl get --raw='/readyz?verbose'` 等）
 - [ ] ダッシュボード（例: Grafana）: API Server の主要指標（エラーレート/レイテンシ/飽和の入口が分かる）
 
 ### 第3章：etcd設計とバックアップ
@@ -90,8 +114,8 @@
 前提（例）:
 - etcd のバックアップ取得（ジョブ/運用手順）と保管先（オブジェクトストレージ等）がある
 
-- [ ] バックアップ成功/失敗が分かる画面（バックアップジョブのログ、スナップショット一覧）
-- [ ] （自前の場合）etcd の状態確認（端末/ダッシュボード）
+- [x] バックアップ成功が分かる端末出力（etcdctl snapshot save）
+- [x] （自前の場合）etcd snapshotの状態確認（etcdutl snapshot status）
 
 ### 第4章：ノード/ランタイム運用
 
@@ -100,7 +124,7 @@
 - ノードログ（kubelet/container runtime）を参照できる
 - （任意）アラート運用がある
 
-- [ ] 端末: `kubectl get nodes -o wide` / `kubectl describe node ...` の主要部
+- [x] 端末: nodeのReady/Pressure conditionとallocatable resource
 - [ ] アラート画面（例: Alertmanager）: Node NotReady / Pressure の発報例
 - [ ] 端末: ノードログの抜粋（例: `journalctl -u kubelet`）
 
@@ -110,8 +134,8 @@
 - CoreDNS/Ingress 等の基盤コンポーネントが稼働している
 - （任意）ネットワーク系ダッシュボード/メトリクスがある
 
-- [ ] 端末: CoreDNS の状態/ログ（`kubectl -n kube-system get pods -l k8s-app=kube-dns` 等）
-- [ ] 端末: Service 到達性の確認（`kubectl exec` / `curl` / `nslookup` 等）
+- [x] 端末: CoreDNS の状態（`kubectl -n kube-system get pods -l k8s-app=kube-dns` 等）
+- [x] 端末: Service 到達性の確認（`kubectl logs` / `wget` / `nslookup`）
 - [ ] ダッシュボード（例）: DNS 失敗率、レイテンシ、欠測が分かる画面
 
 ### 第6章：ストレージ設計と運用
@@ -119,7 +143,7 @@
 前提（例）:
 - StorageClass/PVC/PV が運用対象として存在する
 
-- [ ] 端末: PVC/PV/StorageClass の状態（`kubectl get pvc,pv,sc` 等）
+- [x] 端末: provisioner checksum、PVC/StorageClass、mount後readの状態
 - [ ] 端末: Attach/Mount 失敗時の Events（`kubectl describe pvc/pod`）
 - [ ] （任意）ダッシュボード: ストレージ I/O 指標が分かる画面
 
@@ -129,8 +153,8 @@
 - RBAC を運用している（Role/RoleBinding 等）
 - （任意）監査ログ（audit）が有効で検索できる
 
-- [ ] 端末: `kubectl auth can-i ...` の実行例（運用確認の型）
-- [ ] 端末: RoleBinding/ClusterRoleBinding の一覧・差分確認
+- [x] 端末: `kubectl auth can-i ...` の許可/拒否実行例（運用確認の型）
+- [x] 端末: Role/RoleBinding の参照確認
 - [ ] （可能なら）監査ログ検索（例: ログ基盤 UI）
 
 ### 第8章：マルチテナントとリソース管理
@@ -140,10 +164,12 @@
 - ResourceQuota/LimitRange/PSS/NetworkPolicy 等を適用している（または適用検討中）
 
 - [ ] 端末: Namespace 一覧とラベル
-- [ ] 端末: ResourceQuota/LimitRange の設定と反映（適用前後の差分が分かる）
+- [x] 端末: ResourceQuota/LimitRange とadmission後のdefault resource反映
 - [ ] 端末/UI: PodSecurity（PSS）や NetworkPolicy の適用状態
 
 ### 第9章：監視・ログ・アラート設計
+
+- [x] 端末: API Serverのinflight requestとworkqueue depthの取得可否
 
 前提（例）:
 - 監視（Prometheus 等）/ダッシュボード（Grafana 等）/アラート（Alertmanager 等）/ログ（Loki 等）のいずれかを導入済み
@@ -153,6 +179,8 @@
 - [ ] ログ検索画面（例: Loki）: 変更点と事象を相関できる検索例
 
 ### 第10章：アップグレード戦略
+
+- [x] 端末: kubectl/API server/kubeadm/kubelet/runtimeのversion inventory
 
 前提（例）:
 - 変更管理の運用（チケット/PR/Runbook）がある
@@ -168,9 +196,11 @@
 - 付録B（フロー集）の最小コマンドセットを実行できる
 
 - [ ] インシデント初動（アラート受信→Runbook）: アラート画面＋Runbook へのリンクが見える
-- [ ] 端末: 付録Bフローの「最小コマンドセット」の実行例
+- [x] 端末: Service selectorの障害注入→Endpoint消失→復旧の最小コマンドセット
 
 ### 第12章：自動化と運用標準化
+
+- [x] 端末: Pod Security Admissionの拒否/受理をserver dry-runで確認するpolicy gate
 
 前提（例）:
 - 運用チェックを自動化する仕組み（CI、ポリシー、定期検査等）がある
