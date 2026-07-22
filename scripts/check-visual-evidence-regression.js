@@ -97,12 +97,14 @@ function expectFailureWhenSupported(name, evidence, mutate, restore) {
 }
 
 function expectThrow(name, evidence, operation) {
+  let thrown = null;
   try {
     operation();
-    throw new Error(`${name}: expected an exception containing ${JSON.stringify(evidence)}`);
   } catch (error) {
-    if (!error.message.includes(evidence)) throw error;
+    thrown = error;
   }
+  if (!thrown) throw new Error(`${name}: operation returned normally; expected an exception`);
+  if (!thrown.message.includes(evidence)) throw thrown;
 }
 
 // Keep the mutation fixture proportional to the visual-evidence contract rather
