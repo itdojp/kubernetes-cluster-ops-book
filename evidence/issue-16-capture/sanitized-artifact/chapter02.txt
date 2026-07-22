@@ -1,0 +1,13 @@
+$ kubectl get --raw='/readyz?verbose' | grep -E 'etcd|informer-sync|poststarthook/start-kube-apiserver-admission-initializer|readyz check passed'
+[+]etcd ok
+[+]etcd-readiness ok
+[+]informer-sync ok
+[+]poststarthook/crd-informer-synced ok
+readyz check passed
+
+$ kubectl -n kube-system get pod -l tier=control-plane -o custom-columns=NAME:.metadata.name,READY:.status.containerStatuses[0].ready,RESTARTS:.status.containerStatuses[0].restartCount
+NAME                                           READY   RESTARTS
+etcd-[masked-node]                      true    0
+kube-apiserver-[masked-node]            true    0
+kube-controller-manager-[masked-node]   true    0
+kube-scheduler-[masked-node]            true    0

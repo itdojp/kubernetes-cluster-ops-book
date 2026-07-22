@@ -60,11 +60,24 @@
 ## provenanceとfail-closed検査
 
 - 正本inventoryは `src/assets/visual-evidence/manifest.json` です。撮影run、取得日/JST、環境/version、source command、mask項目、表示transcript、PNG hash/dimension/sizeを記録します。
-- raw transcript、kubeconfig、credential、disposable clusterは公開・commitしません。公開するのは機微情報検査済みのtranscriptを描画したPNGとmanifestだけです。
+- raw transcript（runner logを含む）、kubeconfig、credential、disposable clusterは公開・commitしません。例外として、artifactから削除前にdownloadして機微情報検査したsanitized transcript 14点と環境metadataを、真正性監査専用に `evidence/issue-16-capture/sanitized-artifact/` へ固定します。disposable fixture名はartifact由来であることを監査できるよう保持し、公開PNGへは決定的な置換だけを適用します。
 - `npm run check:visual-evidence` は固定14点、src/docs同期、参照、alt/即時caption、PNG metadata/CRC/decode/hash、重複、機微情報、responsive CSS、Book QA integrationをfail-closedで検査します。
 - PNGは、機微情報検査対象のmanifest transcriptだけを可変入力とする `scripts/render-visual-evidence.js` で決定的に生成します。validatorはPNG全byteを再生成して比較するため、manifest外の文字・pixelを後から画像へ混入できません。
-- Book QAの `npm run check:capture-provenance` はGitHub APIでcapture run、repository、head commit、workflow/script blob、job/step成功、artifact cleanupを再確認します。artifact digestと公開transcript集合hashはmanifestのattestationへ固定します。
+- Book QAの `npm run check:capture-provenance` はGitHub APIでcapture run、repository、head commit、workflow/script blob、job/step成功、artifact cleanupを再確認します。upload時artifact digest、download済みsanitized file-set hash、entryごとのsource file/hash、公開置換、公開transcript集合hashをmanifestとvalidatorへ固定し、captureからPNGまでを接続します。
 - 合成したoperational stateやplaceholderを実行証跡として扱いません。真正な出力を取得できない場合は画像を作らず、blockerと再取得条件をIssueへ残します。
+
+### capture runの保持と更新
+
+- `npm run check:capture-provenance` はattested GitHub Actions runと固定commit/source blobをオンライン参照します。GitHub側の保持期間満了または手動削除でrun/sourceが404になった場合、Book QAは意図どおりfail-closedで停止します。404を無視する変更や検査の条件付き実行は禁止します。
+- 保持期限だけを延長する目的で現在のattestationを書き換えません。定期的な再実行は不要で、404または証跡更新要件が発生した時点で次の完全なrefreshを行います。
+- refresh手順:
+  1. source Issueを再openまたは新規作成し、隔離した一時workflow/scriptをreviewする。
+  2. disposable環境でcaptureし、run、repository、head SHA、workflow/script blob、job/step成功、upload-artifact digestを記録する。
+  3. artifactを削除する前にdownloadし、token、個人識別子、path、IP等の機微情報scanを行う。raw runner logは保存しない。
+  4. `evidence/issue-16-capture/sanitized-artifact/` をdownload済みsanitized file setで置換し、固定file-set hashと各file hashを更新する。
+  5. source artifactから公開transcriptへの差分が許可済みの決定的置換だけであることをreviewし、manifestのrun/source/artifact/transform attestationを更新する。
+  6. `scripts/render-visual-evidence.js --write`、`npm run check:visual-evidence`、`npm run check:capture-provenance`、Book QAを実行し、通常のPR review/mergeを行う。
+  7. download済みfile setと証跡chainを確認後にGitHub artifactと一時branch/workflowを削除する。run自体は保持する。
 
 方針:
 - ツール固有の UI（例: Grafana/Prometheus/Alertmanager/Loki 等）はあくまで「例」とし、本文はツール非依存の型を維持する。

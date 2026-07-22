@@ -1,0 +1,14 @@
+$ sha256sum --check local-path-storage-v0.0.34.yaml
+local-path-storage-v0.0.34.yaml: OK
+
+$ kubectl get storageclass
+NAME                 PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+local-path           rancher.io/local-path   Delete          WaitForFirstConsumer   false                  8s
+standard (default)   rancher.io/local-path   Delete          WaitForFirstConsumer   false                  34s
+
+$ kubectl -n operations-lab get pvc ops-data
+NAME       STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+ops-data   Bound    pvc-[masked-volume]   1Gi        RWO            standard       <unset>                 5s
+
+$ kubectl -n operations-lab exec storage-check -- cat /data/result.txt
+verified

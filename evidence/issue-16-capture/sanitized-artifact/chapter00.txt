@@ -1,0 +1,20 @@
+$ jq -e 'has("changeId") and has("ownerRole") and has("rollback") and has("verification") and has("evidence")' change-record.json
+true
+
+$ jq '{changeId,ownerRole,scope,rollback,verification,evidence}' change-record.json
+{
+  "changeId": "CHG-MASKED",
+  "ownerRole": "cluster-operator",
+  "scope": "disposable-lab",
+  "rollback": "restore the previous manifest",
+  "verification": [
+    "control-plane ready",
+    "workload smoke succeeds"
+  ],
+  "evidence": [
+    "command transcript",
+    "post-change health"
+  ]
+}
+
+CHANGE_RECORD_GATE=PASS

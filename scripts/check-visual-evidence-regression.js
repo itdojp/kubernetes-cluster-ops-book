@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 const { crc32, validateVisualEvidence } = require('./check-visual-evidence');
-const { textChunk } = require('./render-visual-evidence');
+const { renderVisualEvidence, textChunk, transcriptSetSha256 } = require('./render-visual-evidence');
 
 const repoRoot = path.resolve(__dirname, '..');
 const cacheRoot = path.join(repoRoot, 'node_modules', '.cache');
@@ -20,8 +20,14 @@ function copy(relativePath) {
 }
 
 const manifestPath = path.join(fixtureRoot, 'src/assets/visual-evidence/manifest.json');
+const docsManifestPath = path.join(fixtureRoot, 'docs/assets/visual-evidence/manifest.json');
 function readManifest() { return JSON.parse(fs.readFileSync(manifestPath, 'utf8')); }
 function writeManifest(value) { fs.writeFileSync(manifestPath, `${JSON.stringify(value, null, 2)}\n`); }
+function writeSyncedManifest(value) {
+  const serialized = `${JSON.stringify(value, null, 2)}\n`;
+  fs.writeFileSync(manifestPath, serialized);
+  fs.writeFileSync(docsManifestPath, serialized);
+}
 
 function pngChunk(type, data) {
   const typeBuffer = Buffer.from(type, 'ascii');
@@ -113,10 +119,12 @@ function expectThrow(name, evidence, operation) {
 for (const item of [
   'src/assets/visual-evidence', 'src/chapters',
   'docs/assets/visual-evidence', 'docs/assets/css/main.css', 'docs/chapters',
+  'evidence/issue-16-capture/sanitized-artifact',
   'package.json', 'SCREENSHOTS.md', '.github/workflows/book-qa.yml',
   'scripts/render-visual-evidence.js', 'scripts/visual-evidence-font.json',
 ]) copy(item);
 const baselineManifest = fs.readFileSync(manifestPath, 'utf8');
+const baselineDocsManifest = fs.readFileSync(docsManifestPath, 'utf8');
 let passed = 0;
 let skipped = 0;
 
@@ -187,6 +195,12 @@ try {
     ['capture run attestation drift', 'capture attestation runId differs',
       () => { const m = readManifest(); m.captureAttestation.runId += 1; writeManifest(m); },
       () => fs.writeFileSync(manifestPath, baselineManifest)],
+    ['capture artifact file-set attestation drift', 'sanitizedArtifactFileSetSha256 differs',
+      () => { const m = readManifest(); m.captureAttestation.sanitizedArtifactFileSetSha256 = '0'.repeat(64); writeManifest(m); },
+      () => fs.writeFileSync(manifestPath, baselineManifest)],
+    ['entry source artifact mapping drift', 'source artifact path/SHA-256 differs',
+      () => { const m = readManifest(); m.entries[0].sourceArtifactFile = m.entries[1].sourceArtifactFile; writeManifest(m); },
+      () => fs.writeFileSync(manifestPath, baselineManifest)],
     ['renderer source drift', 'renderer SHA-256 differs',
       () => { const p = path.join(fixtureRoot, 'scripts/render-visual-evidence.js'); fs.appendFileSync(p, '\n// drift\n'); },
       () => fs.copyFileSync(path.join(repoRoot, 'scripts/render-visual-evidence.js'), path.join(fixtureRoot, 'scripts/render-visual-evidence.js'))],
@@ -200,6 +214,35 @@ try {
   const docsImage = path.join(fixtureRoot, 'docs/chapters/chapter00/images/ch00-change-record-gate-01.png');
   const baselineImage = fs.readFileSync(sourceImage);
   const baselineDocsImage = fs.readFileSync(docsImage);
+  const artifactTranscript = path.join(fixtureRoot, 'evidence/issue-16-capture/sanitized-artifact/chapter00.txt');
+  const baselineArtifactTranscript = fs.readFileSync(artifactTranscript);
+  expectFailure('downloaded sanitized artifact tampering', 'sanitized capture artifact SHA-256 differs',
+    () => fs.appendFileSync(artifactTranscript, 'tampered\n'),
+    () => fs.writeFileSync(artifactTranscript, baselineArtifactTranscript));
+  passed += 1;
+
+  expectFailure('self-consistent fabricated publication', 'does not match the deterministic publication transform',
+    () => {
+      const m = readManifest();
+      m.entries[0].displayedTranscript += 'FABRICATED_OUTPUT=PASS\n';
+      const rendered = renderVisualEvidence(m.entries[0]);
+      fs.writeFileSync(sourceImage, rendered.buffer);
+      fs.writeFileSync(docsImage, rendered.buffer);
+      m.entries[0].width = rendered.width;
+      m.entries[0].height = rendered.height;
+      m.entries[0].bytes = rendered.buffer.length;
+      m.entries[0].sha256 = crypto.createHash('sha256').update(rendered.buffer).digest('hex');
+      m.captureAttestation.publishedTranscriptSetSha256 = transcriptSetSha256(m.entries);
+      writeSyncedManifest(m);
+    },
+    () => {
+      fs.writeFileSync(sourceImage, baselineImage);
+      fs.writeFileSync(docsImage, baselineDocsImage);
+      fs.writeFileSync(manifestPath, baselineManifest);
+      fs.writeFileSync(docsManifestPath, baselineDocsManifest);
+    });
+  passed += 1;
+
   expectFailure('generated image drift', 'generated docs PNG must exactly match',
     () => fs.writeFileSync(docsImage, Buffer.from('not the canonical image')),
     () => fs.writeFileSync(docsImage, baselineDocsImage));
@@ -328,7 +371,7 @@ try {
   const screenshots = path.join(fixtureRoot, 'SCREENSHOTS.md');
   const baselineScreenshots = fs.readFileSync(screenshots, 'utf8');
   expectFailure('policy integration drift', 'SCREENSHOTS.md must document npm run check:visual-evidence',
-    () => fs.writeFileSync(screenshots, baselineScreenshots.replace('npm run check:visual-evidence', 'npm run removed')),
+    () => fs.writeFileSync(screenshots, baselineScreenshots.replaceAll('npm run check:visual-evidence', 'npm run removed')),
     () => fs.writeFileSync(screenshots, baselineScreenshots));
   passed += 1;
   const css = path.join(fixtureRoot, 'docs/assets/css/main.css');

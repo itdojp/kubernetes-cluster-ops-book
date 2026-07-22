@@ -7,21 +7,41 @@ const zlib = require('zlib');
 const { renderVisualEvidence, transcriptSetSha256 } = require('./render-visual-evidence');
 
 const EXPECTED = [
-  ['ch00-change-record', 'chapter00', 'ch00-change-record-gate-01.png'],
-  ['ch01-cluster-inventory', 'chapter01', 'ch01-cluster-inventory-01.png'],
-  ['ch02-control-plane-readyz', 'chapter02', 'ch02-control-plane-readyz-01.png'],
-  ['ch03-etcd-snapshot-status', 'chapter03', 'ch03-etcd-snapshot-status-01.png'],
-  ['ch04-node-conditions', 'chapter04', 'ch04-node-conditions-01.png'],
-  ['ch05-dns-service', 'chapter05', 'ch05-dns-service-check-01.png'],
-  ['ch06-storage-pvc', 'chapter06', 'ch06-storage-pvc-check-01.png'],
-  ['ch07-rbac-can-i', 'chapter07', 'ch07-rbac-can-i-01.png'],
-  ['ch07-pss-namespace-label', 'chapter07', 'ch07-pss-namespace-label-02.png'],
-  ['ch08-quota-limitrange', 'chapter08', 'ch08-quota-limitrange-01.png'],
-  ['ch09-apiserver-metrics', 'chapter09', 'ch09-apiserver-metrics-01.png'],
-  ['ch10-version-skew', 'chapter10', 'ch10-version-skew-inventory-01.png'],
-  ['ch11-service-recovery', 'chapter11', 'ch11-service-recovery-01.png'],
-  ['ch12-policy-gate', 'chapter12', 'ch12-policy-gate-01.png'],
+  ['ch00-change-record', 'chapter00', 'ch00-change-record-gate-01.png', 'chapter00.txt'],
+  ['ch01-cluster-inventory', 'chapter01', 'ch01-cluster-inventory-01.png', 'chapter01.txt'],
+  ['ch02-control-plane-readyz', 'chapter02', 'ch02-control-plane-readyz-01.png', 'chapter02.txt'],
+  ['ch03-etcd-snapshot-status', 'chapter03', 'ch03-etcd-snapshot-status-01.png', 'chapter03.txt'],
+  ['ch04-node-conditions', 'chapter04', 'ch04-node-conditions-01.png', 'chapter04.txt'],
+  ['ch05-dns-service', 'chapter05', 'ch05-dns-service-check-01.png', 'chapter05.txt'],
+  ['ch06-storage-pvc', 'chapter06', 'ch06-storage-pvc-check-01.png', 'chapter06.txt'],
+  ['ch07-rbac-can-i', 'chapter07', 'ch07-rbac-can-i-01.png', 'chapter07-rbac.txt'],
+  ['ch07-pss-namespace-label', 'chapter07', 'ch07-pss-namespace-label-02.png', 'chapter07-pss.txt'],
+  ['ch08-quota-limitrange', 'chapter08', 'ch08-quota-limitrange-01.png', 'chapter08.txt'],
+  ['ch09-apiserver-metrics', 'chapter09', 'ch09-apiserver-metrics-01.png', 'chapter09.txt'],
+  ['ch10-version-skew', 'chapter10', 'ch10-version-skew-inventory-01.png', 'chapter10.txt'],
+  ['ch11-service-recovery', 'chapter11', 'ch11-service-recovery-01.png', 'chapter11.txt'],
+  ['ch12-policy-gate', 'chapter12', 'ch12-policy-gate-01.png', 'chapter12.txt'],
 ];
+const ARTIFACT_DIRECTORY = 'evidence/issue-16-capture/sanitized-artifact';
+const ARTIFACT_FILE_SET_SHA256 = '3a48f5ab0db8f1009dd03cf85a2e7bdfc4aed5be150eaeeea1534da2337236ac';
+const ARTIFACT_FILE_SHA256 = {
+  'chapter00.txt': 'b0a580f4908344a59d22ab4f511d2b292a53315e5ec4f37a3ca91017a262561a',
+  'chapter01.txt': '88caad6a32ab2db0e8878eb889253ae0a2df7aa8d306bb6ece13cbb2e51c5228',
+  'chapter02.txt': '7bb82376f385640f7f90e8b7fe681c9449d46be24c8f9a164e31436678081150',
+  'chapter03.txt': '05a961b96d88e95957f6ee44b90b81c8a3e0d8559fd83a01fa7cd68ad7b0d607',
+  'chapter04.txt': '7d427edbc91b534b2f9e162e5be192725de8e3b7873374eaf74a0a71dba5b860',
+  'chapter05.txt': '61d2828ed4d5de79a51ac12747aff799bf4d3a816892f9fe85f6f409f30328ff',
+  'chapter06.txt': 'd99ff9b22c95d69cefadac84fd7be2e1c28f776af4776ee353d21e14d174df9c',
+  'chapter07-pss.txt': 'a63e10f1a46470abdb5b6253b884db1736544bd57c966f9c3e8dcb1a05f965bc',
+  'chapter07-rbac.txt': '2b3b6ea265a229560c167b5c98ac0b55bd10643967eab0ce9d06e9db42668ef7',
+  'chapter08.txt': '2c688b4387d0f1626f83b0792d6bbf9e48687c00d4d414f2ec3cfb4c8604d14d',
+  'chapter09.txt': 'b686984764f466ac19e21d15701a601820f81e5e3fabdc96fde68c7c2dd3b204',
+  'chapter10.txt': '91d05bb0cef7cc0e3e07dbc0b668568e40bdbfda764b79ba9330c1a0b6804b2f',
+  'chapter11.txt': '0616da137b29502c5db090c50591ae19ae537b4e476b4a15acdce1300223c54d',
+  'chapter12.txt': 'eac7f1131de53cbefc635c124808769632cd162042d7ae298741d86a539897c2',
+  'environment.json': '9da6fb74299c804fbc0bbdfce50602a7cd515362961199b2f14ba9827e84b3e3',
+};
+const PUBLICATION_TRANSFORM = 'normalize CRLF to LF; operations-lab -> [masked-namespace]; tenant-a and team-a -> [masked-tenant]';
 const MAX_FILE_BYTES = 500 * 1024;
 const MAX_DECODED_BYTES = 32 * 1024 * 1024;
 const MIN_WIDTH = 1200;
@@ -47,6 +67,57 @@ const FORBIDDEN = [
   { label: 'container identifier', pattern: /containerd:\/\/[0-9a-f]{12,}/i },
   { label: 'dynamic volume UUID', pattern: /pvc-[0-9a-f]{8}-[0-9a-f-]{27}/i },
 ];
+const ARTIFACT_FORBIDDEN = FORBIDDEN.filter(({ label }) => label !== 'capture fixture identity');
+
+function sha256(buffer) {
+  return crypto.createHash('sha256').update(buffer).digest('hex');
+}
+
+function publishTranscript(source) {
+  return source.toString('utf8').replace(/\r\n/g, '\n')
+    .replaceAll('operations-lab', '[masked-namespace]')
+    .replaceAll('tenant-a', '[masked-tenant]')
+    .replaceAll('team-a', '[masked-tenant]');
+}
+
+function loadSanitizedArtifact(repoRoot, errors) {
+  const root = path.join(repoRoot, ARTIFACT_DIRECTORY);
+  const buffers = new Map();
+  let names = [];
+  try {
+    names = fs.readdirSync(root, { withFileTypes: true }).map((entry) => {
+      if (!entry.isFile() || entry.isSymbolicLink()) errors.push(`sanitized capture artifact must contain regular files only: ${entry.name}`);
+      return entry.name;
+    }).sort();
+  } catch (error) {
+    errors.push(`sanitized capture artifact directory is missing: ${error.message}`);
+    return buffers;
+  }
+  const expectedNames = Object.keys(ARTIFACT_FILE_SHA256).sort();
+  if (JSON.stringify(names) !== JSON.stringify(expectedNames)) errors.push('sanitized capture artifact inventory differs from the reviewed 15-file set');
+  const fileSet = crypto.createHash('sha256');
+  for (const name of names) {
+    const file = path.join(root, name);
+    let value;
+    try {
+      const stat = fs.lstatSync(file);
+      if (!stat.isFile() || stat.isSymbolicLink()) continue;
+      value = fs.readFileSync(file);
+    } catch (error) {
+      errors.push(`sanitized capture artifact file is unreadable: ${name}`);
+      continue;
+    }
+    buffers.set(name, value);
+    fileSet.update(name).update('\0').update(value).update('\0');
+    if (sha256(value) !== ARTIFACT_FILE_SHA256[name]) errors.push(`sanitized capture artifact SHA-256 differs: ${name}`);
+    const sensitiveText = value.toString('utf8');
+    for (const forbidden of ARTIFACT_FORBIDDEN) {
+      if (forbidden.pattern.test(sensitiveText)) errors.push(`sanitized capture artifact ${name}: ${forbidden.label} remains`);
+    }
+  }
+  if (fileSet.digest('hex') !== ARTIFACT_FILE_SET_SHA256) errors.push('sanitized capture artifact file-set SHA-256 differs from the reviewed download');
+  return buffers;
+}
 
 function readJson(file, errors, label) {
   try {
@@ -278,7 +349,8 @@ function validateVisualEvidence(repoRoot = path.resolve(__dirname, '..')) {
     const policy = fs.readFileSync(path.join(repoRoot, 'SCREENSHOTS.md'), 'utf8');
     for (const marker of [
       'src/assets/visual-evidence/manifest.json', 'npm run check:visual-evidence', 'npm run check:capture-provenance',
-      'scripts/render-visual-evidence.js', 'raw transcript',
+      'scripts/render-visual-evidence.js', 'raw transcript', ARTIFACT_DIRECTORY,
+      'capture runの保持と更新', 'fail-closedで停止',
     ]) {
       if (!policy.includes(marker)) errors.push(`SCREENSHOTS.md must document ${marker}`);
     }
@@ -315,6 +387,9 @@ function validateVisualEvidence(repoRoot = path.resolve(__dirname, '..')) {
     artifactId: 8544117974, artifactSizeBytes: 6620,
     artifactSha256: 'e529d9e6967dc1fdca3fafdfa6ab23ee9fb54e1141c43ab43b341783d6639da7',
     artifactDeletedAfterVerification: true, sourceTranscriptCount: 14,
+    sanitizedArtifactDirectory: ARTIFACT_DIRECTORY, sanitizedArtifactFileCount: 15,
+    sanitizedArtifactFileSetSha256: ARTIFACT_FILE_SET_SHA256,
+    publicationTransform: PUBLICATION_TRANSFORM,
   };
   for (const [key, expected] of Object.entries(expectedAttestation)) {
     if (attestation[key] !== expected) errors.push(`capture attestation ${key} differs from the reviewed successful run`);
@@ -330,6 +405,7 @@ function validateVisualEvidence(repoRoot = path.resolve(__dirname, '..')) {
     errors.push(`deterministic renderer contract is missing: ${error.message}`);
   }
   if (entries.length !== EXPECTED.length) errors.push(`manifest entry count: expected ${EXPECTED.length}, got ${entries.length}`);
+  const artifactBuffers = loadSanitizedArtifact(repoRoot, errors);
 
   const ids = new Set();
   const sourceFiles = new Set();
@@ -346,6 +422,15 @@ function validateVisualEvidence(repoRoot = path.resolve(__dirname, '..')) {
     if (entry.file !== expectedSource || entry.docsFile !== expectedDocs) {
       errors.push(`${label}: source/docs file paths differ from the fixed P0 inventory`);
       return;
+    }
+    const expectedArtifactFile = expected && `${ARTIFACT_DIRECTORY}/${expected[3]}`;
+    if (entry.sourceArtifactFile !== expectedArtifactFile || entry.sourceArtifactSha256 !== ARTIFACT_FILE_SHA256[expected?.[3]]) {
+      errors.push(`${label}: source artifact path/SHA-256 differs from the reviewed capture file`);
+    }
+    const artifactBuffer = expected && artifactBuffers.get(expected[3]);
+    if (!artifactBuffer) errors.push(`${label}: reviewed source artifact transcript is missing`);
+    else if (entry.displayedTranscript !== publishTranscript(artifactBuffer)) {
+      errors.push(`${label}: displayed transcript does not match the deterministic publication transform of the reviewed artifact`);
     }
     sourceFiles.add(entry.file);
     docsFiles.add(entry.docsFile);

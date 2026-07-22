@@ -1,0 +1,19 @@
+$ kubectl -n team-a get resourcequota compute-quota
+NAME            REQUEST                                                 LIMIT                                   AGE
+compute-quota   pods: 0/10, requests.cpu: 0/2, requests.memory: 0/2Gi   limits.cpu: 0/4, limits.memory: 0/4Gi   1s
+
+$ kubectl -n team-a get limitrange container-defaults
+NAME                 CREATED AT
+container-defaults   2026-07-22T20:41:46Z
+
+$ kubectl -n team-a run sample --restart=Never --image=nginx:1.27.5-alpine --dry-run=server -o json | jq '{requests:.spec.containers[0].resources.requests,limits:.spec.containers[0].resources.limits}'
+{
+  "requests": {
+    "cpu": "100m",
+    "memory": "64Mi"
+  },
+  "limits": {
+    "cpu": "500m",
+    "memory": "256Mi"
+  }
+}

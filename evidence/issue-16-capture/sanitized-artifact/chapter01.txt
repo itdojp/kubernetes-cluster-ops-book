@@ -1,0 +1,16 @@
+$ kubectl cluster-info
+Kubernetes control plane is running at https://[masked-ip]:34587
+CoreDNS is running at https://[masked-ip]:34587/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
+
+To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
+
+$ kubectl get nodes -o custom-columns=NAME:.metadata.name,ROLE:.metadata.labels.node-role\\.kubernetes\\.io/control-plane,VERSION:.status.nodeInfo.kubeletVersion,RUNTIME:.status.nodeInfo.containerRuntimeVersion
+NAME                   ROLE   VERSION   RUNTIME
+[masked-node]          v1.35.0   containerd://2.2.0
+
+$ kubectl get crd --no-headers 2>/dev/null | wc -l
+0
+
+$ kubectl -n kube-system get deploy -o custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,DESIRED:.spec.replicas
+NAME      READY   DESIRED
+coredns   2       2

@@ -1,0 +1,21 @@
+$ kubectl -n kube-system get pod -l k8s-app=kube-dns
+NAME                       READY   STATUS    RESTARTS   AGE
+coredns-7d764666f9-255b7   1/1     Running   0          20s
+coredns-7d764666f9-9p8fg   1/1     Running   0          20s
+
+$ kubectl -n operations-lab get svc,endpointslice
+NAME          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+service/web   ClusterIP   [masked-ip]   <none>        80/TCP    26s
+
+NAME                                       ADDRESSTYPE   PORTS   ENDPOINTS               AGE
+endpointslice.discovery.k8s.io/web-lkddl   IPv4          80      [masked-ip],[masked-ip]   20s
+
+$ kubectl -n operations-lab logs dns-check
+Server:		[masked-ip]
+Address:	[masked-ip]:53
+
+
+Name:	web.operations-lab.svc.cluster.local
+Address: [masked-ip]
+
+HTTP_SERVICE_OK

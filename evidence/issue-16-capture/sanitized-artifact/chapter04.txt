@@ -1,0 +1,7 @@
+$ kubectl get node -o custom-columns=NAME:.metadata.name,READY:.status.conditions[?(@.type=="Ready")].status,MEMORY_PRESSURE:.status.conditions[?(@.type=="MemoryPressure")].status,DISK_PRESSURE:.status.conditions[?(@.type=="DiskPressure")].status,PID_PRESSURE:.status.conditions[?(@.type=="PIDPressure")].status
+NAME                   READY   MEMORY_PRESSURE   DISK_PRESSURE   PID_PRESSURE
+[masked-node]   True    False             False           False
+
+$ kubectl get node -o custom-columns=NAME:.metadata.name,CPU:.status.allocatable.cpu,MEMORY:.status.allocatable.memory,PODS:.status.allocatable.pods
+NAME                   CPU   MEMORY       PODS
+[masked-node]   4     16373460Ki   110
