@@ -21,6 +21,12 @@ async function githubJson(url) {
       'User-Agent': 'kubernetes-cluster-ops-book-capture-provenance',
     },
   });
+  if (response.status === 404) {
+    throw new Error(
+      `GitHub API 404 for ${new URL(url).pathname}; the attested capture run or source is no longer available. `
+      + 'Re-run the isolated capture workflow and update the manifest captureAttestation before merging.',
+    );
+  }
   if (!response.ok) throw new Error(`GitHub API ${response.status} for ${new URL(url).pathname}`);
   return response.json();
 }

@@ -95,8 +95,13 @@ function expectFailureWhenSupported(name, evidence, mutate, restore) {
   }
 }
 
+// Keep the mutation fixture proportional to the visual-evidence contract rather
+// than to the size of the whole book. The validator reads these chapter,
+// inventory, policy, workflow, and rendering paths only.
 for (const item of [
-  'src', 'docs', 'package.json', 'SCREENSHOTS.md', '.github/workflows/book-qa.yml',
+  'src/assets/visual-evidence', 'src/chapters',
+  'docs/assets/visual-evidence', 'docs/assets/css/main.css', 'docs/chapters',
+  'package.json', 'SCREENSHOTS.md', '.github/workflows/book-qa.yml',
   'scripts/render-visual-evidence.js', 'scripts/visual-evidence-font.json',
 ]) copy(item);
 const baselineManifest = fs.readFileSync(manifestPath, 'utf8');
