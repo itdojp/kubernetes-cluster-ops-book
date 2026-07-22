@@ -85,6 +85,11 @@ function loadSanitizedArtifact(repoRoot, errors) {
   const buffers = new Map();
   let names = [];
   try {
+    const rootStat = fs.lstatSync(root);
+    if (!rootStat.isDirectory() || rootStat.isSymbolicLink()) {
+      errors.push('sanitized capture artifact root must be a regular directory, not a symlink');
+      return buffers;
+    }
     names = fs.readdirSync(root, { withFileTypes: true }).map((entry) => {
       if (!entry.isFile() || entry.isSymbolicLink()) errors.push(`sanitized capture artifact must contain regular files only: ${entry.name}`);
       return entry.name;

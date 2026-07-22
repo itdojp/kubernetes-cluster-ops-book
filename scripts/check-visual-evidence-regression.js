@@ -214,7 +214,20 @@ try {
   const docsImage = path.join(fixtureRoot, 'docs/chapters/chapter00/images/ch00-change-record-gate-01.png');
   const baselineImage = fs.readFileSync(sourceImage);
   const baselineDocsImage = fs.readFileSync(docsImage);
-  const artifactTranscript = path.join(fixtureRoot, 'evidence/issue-16-capture/sanitized-artifact/chapter00.txt');
+  const artifactRoot = path.join(fixtureRoot, 'evidence/issue-16-capture/sanitized-artifact');
+  const artifactBackup = path.join(fixtureRoot, 'artifact-outside-reviewed-root');
+  expectFailure('sanitized artifact root symlink', 'artifact root must be a regular directory',
+    () => {
+      fs.renameSync(artifactRoot, artifactBackup);
+      fs.symlinkSync(artifactBackup, artifactRoot, 'dir');
+    },
+    () => {
+      fs.rmSync(artifactRoot, { force: true });
+      fs.renameSync(artifactBackup, artifactRoot);
+    });
+  passed += 1;
+
+  const artifactTranscript = path.join(artifactRoot, 'chapter00.txt');
   const baselineArtifactTranscript = fs.readFileSync(artifactTranscript);
   expectFailure('downloaded sanitized artifact tampering', 'sanitized capture artifact SHA-256 differs',
     () => fs.appendFileSync(artifactTranscript, 'tampered\n'),
