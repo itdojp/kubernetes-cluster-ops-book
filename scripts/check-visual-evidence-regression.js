@@ -216,7 +216,7 @@ try {
   const baselineDocsImage = fs.readFileSync(docsImage);
   const artifactRoot = path.join(fixtureRoot, 'evidence/issue-16-capture/sanitized-artifact');
   const artifactBackup = path.join(fixtureRoot, 'artifact-outside-reviewed-root');
-  expectFailure('sanitized artifact root symlink', 'artifact root must be a regular directory',
+  if (expectFailureWhenSupported('sanitized artifact root symlink', 'artifact root must be a regular directory',
     () => {
       fs.renameSync(artifactRoot, artifactBackup);
       fs.symlinkSync(artifactBackup, artifactRoot, 'dir');
@@ -224,8 +224,11 @@ try {
     () => {
       fs.rmSync(artifactRoot, { force: true });
       fs.renameSync(artifactBackup, artifactRoot);
-    });
-  passed += 1;
+    })) {
+    passed += 1;
+  } else {
+    skipped += 1;
+  }
 
   const artifactTranscript = path.join(artifactRoot, 'chapter00.txt');
   const baselineArtifactTranscript = fs.readFileSync(artifactTranscript);
