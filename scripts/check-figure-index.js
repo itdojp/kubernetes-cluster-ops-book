@@ -3,7 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const ROOT = process.cwd();
+const ROOT = path.resolve(__dirname, '..');
 const APPENDIX_ID = 'appendix-d';
 const APPENDIX_ROUTE = '/appendices/appendix-d/';
 const APPENDIX_DESCRIPTION = '全13章で公開する14点のP0 visual evidenceと確認観点';
