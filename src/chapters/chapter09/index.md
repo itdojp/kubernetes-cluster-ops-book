@@ -83,6 +83,12 @@ SLI/SLO はワークロードの指標と直結しますが、プラットフォ
 - 重要度（Sev）/通知経路: ページ/チャット/チケットの使い分け
 - Runbook: まず見るダッシュボード、一次対応手順、エスカレーション先（[付録B](../../appendices/appendix-b/)・[第11章](../chapter11/)）
 
+### 実行証跡：API server inflight requestとworkqueue depthの取得可否を判断する出力 {#figure-ch09-apiserver-metrics-01}
+
+![API server inflight requestとworkqueue depthの取得可否を判断する出力](./images/ch09-apiserver-metrics-01.png)
+
+_2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。apiserver_current_inflight_requestsとworkqueue_depthの実値、METRICS_ENDPOINT_GATE=PASSを見て、control plane監視の入口と欠測有無を判断します。_
+
 ## 実務チェック観点（最低5項目）
 - SLI/SLO が定義され、アラートは SLO と接続して優先順位付けされている
 - Control Plane/Node/基盤アドオンを含む最小監視セットが整備され、欠測（収集失敗）を検知できる

@@ -111,6 +111,12 @@ description: "Tenant critical workloads"
 - 「誰が」「どの条件で」高優先度を使えるかを統制します（申請/承認/期限）。
 - preemption は復旧には有効ですが、誤用すると別テナントの障害を誘発します。
 
+### 実行証跡：ResourceQuota・LimitRangeとadmission後の既定resource値を判断する出力 {#figure-ch08-quota-limitrange-01}
+
+![ResourceQuota・LimitRangeとadmission後の既定resource値を判断する出力](./images/ch08-quota-limitrange-01.png)
+
+_2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。ResourceQuota、LimitRangeと、Nginx 1.27.5-alpine Podのserver dry-runに注入されたrequests/limitsを見て、tenant guardrailが機能するか判断します。_
+
 ## 実務チェック観点（最低5項目）
 - テナント境界（クラスタ/namespace/ノードプール）の選定根拠が要件に紐付いている
 - namespace 払い出しがテンプレ化され、RBAC/PSS/Quota/LimitRange が自動適用される

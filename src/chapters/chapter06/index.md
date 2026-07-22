@@ -42,6 +42,12 @@
 代替案（例）:
 - 要件が厳しく運用負荷が大きい場合、状態をクラスタ外（マネージド DB 等）へ寄せ、Kubernetes 側は stateless を基本にします。
 
+### 実行証跡：provisioner checksum・StorageClass・PVC Bound・mount後readを判断する出力 {#figure-ch06-storage-pvc-check-01}
+
+![provisioner checksum・StorageClass・PVC Bound・mount後readを判断する出力](./images/ch06-storage-pvc-check-01.png)
+
+_2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。local-path-provisioner 0.0.34のchecksum、StorageClass、PVC Bound、mount先のverified読取を見て、provisionから利用まで成功したか判断します。_
+
 ## 注意点（運用）
 - Multi-Attach（RWO の同時アタッチ等）は典型障害です。アクセスモードと配置（ノード/ゾーン）を設計で吸収します。
 - スナップショット/バックアップの可否は環境に依存します。可用性と整合性の前提（要確認）を明記して運用してください。

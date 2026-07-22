@@ -1,0 +1,530 @@
+{
+  "schemaVersion": 1,
+  "issue": 16,
+  "policy": "Actual command output only. Published transcripts are sanitized representations; fabricated operational state is prohibited.",
+  "captureRun": "https://github.com/itdojp/kubernetes-cluster-ops-book/actions/runs/29956126898",
+  "entries": [
+    {
+      "id": "ch00-change-record",
+      "chapter": "chapter00",
+      "file": "src/chapters/chapter00/images/ch00-change-record-gate-01.png",
+      "docsFile": "docs/chapters/chapter00/images/ch00-change-record-gate-01.png",
+      "anchor": "figure-ch00-change-record-gate-01",
+      "indexAnchor": "figure-index-ch00-change-record-gate-01",
+      "alt": "変更ID・責任者・rollback・検証証跡の記録完全性を判断するchange record検証結果",
+      "caption": "2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。changeId、ownerRole、rollback、verification、evidenceとPASS markerを照合し、変更前の運用記録が実行可能な状態か判断します。",
+      "environment": "Ubuntu 24.04 GitHub-hosted runner; disposable kind cluster",
+      "versions": {
+        "Kubernetes": "1.35.0",
+        "kubectl": "1.35.1",
+        "kind": "0.31.0"
+      },
+      "captureSource": "GitHub Actions run 29956126898",
+      "capturedAt": "2026-07-23",
+      "captureTimezone": "Asia/Tokyo (UTC+09:00)",
+      "dateBasis": "Command execution occurred on 2026-07-23 JST.",
+      "sourceKind": "terminal-output",
+      "maskedFields": [
+        "change identifier"
+      ],
+      "setupSummary": "A non-identifying change-record fixture was validated with jq before cluster creation.",
+      "sourceCommands": [
+        "jq -e 'has(\"changeId\") and has(\"ownerRole\") and has(\"rollback\") and has(\"verification\") and has(\"evidence\")' change-record.json",
+        "jq '{changeId,ownerRole,scope,rollback,verification,evidence}' change-record.json"
+      ],
+      "displayedTranscript": "$ jq -e 'has(\"changeId\") and has(\"ownerRole\") and has(\"rollback\") and has(\"verification\") and has(\"evidence\")' change-record.json\ntrue\n\n$ jq '{changeId,ownerRole,scope,rollback,verification,evidence}' change-record.json\n{\n  \"changeId\": \"CHG-MASKED\",\n  \"ownerRole\": \"cluster-operator\",\n  \"scope\": \"disposable-lab\",\n  \"rollback\": \"restore the previous manifest\",\n  \"verification\": [\n    \"control-plane ready\",\n    \"workload smoke succeeds\"\n  ],\n  \"evidence\": [\n    \"command transcript\",\n    \"post-change health\"\n  ]\n}\n\nCHANGE_RECORD_GATE=PASS\n",
+      "indexPurpose": "変更作業へ入る前に、責任者・切り戻し・検証・証跡の必須項目がそろっていることを確認します。",
+      "indexInspection": "jqの真偽値とCHANGE_RECORD_GATE=PASSを見て、changeId、ownerRole、rollback、verification、evidenceが欠けていないかを確認します。",
+      "width": 1400,
+      "height": 807,
+      "bytes": 67875,
+      "sha256": "a539fff5bf0175b3f0f9f19cf4b7429a8a52881d8cc3150ba57feb8c51391611"
+    },
+    {
+      "id": "ch01-cluster-inventory",
+      "chapter": "chapter01",
+      "file": "src/chapters/chapter01/images/ch01-cluster-inventory-01.png",
+      "docsFile": "docs/chapters/chapter01/images/ch01-cluster-inventory-01.png",
+      "anchor": "figure-ch01-cluster-inventory-01",
+      "indexAnchor": "figure-index-ch01-cluster-inventory-01",
+      "alt": "API endpoint・node version・runtime・CRD・基盤Deploymentの棚卸し結果を判断する出力",
+      "caption": "2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。cluster-info、node version/runtime、CRD数、CoreDNSのdesired/readyを見て、設計判断に必要な現行inventoryが取得できたか判断します。",
+      "environment": "Ubuntu 24.04 GitHub-hosted runner; disposable kind cluster",
+      "versions": {
+        "Kubernetes": "1.35.0",
+        "kubectl": "1.35.1",
+        "kind": "0.31.0"
+      },
+      "captureSource": "GitHub Actions run 29956126898",
+      "capturedAt": "2026-07-23",
+      "captureTimezone": "Asia/Tokyo (UTC+09:00)",
+      "dateBasis": "Command execution occurred on 2026-07-23 JST.",
+      "sourceKind": "terminal-output",
+      "maskedFields": [
+        "cluster name",
+        "kubectl context",
+        "node name",
+        "IPv4 addresses"
+      ],
+      "setupSummary": "Read-only inventory commands were run against the disposable cluster.",
+      "sourceCommands": [
+        "kubectl cluster-info",
+        "kubectl get nodes -o custom-columns=NAME:.metadata.name,ROLE:.metadata.labels.node-role\\\\.kubernetes\\\\.io/control-plane,VERSION:.status.nodeInfo.kubeletVersion,RUNTIME:.status.nodeInfo.containerRuntimeVersion",
+        "kubectl get crd --no-headers 2>/dev/null | wc -l",
+        "kubectl -n kube-system get deploy -o custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,DESIRED:.spec.replicas"
+      ],
+      "displayedTranscript": "$ kubectl cluster-info\nKubernetes control plane is running at https://[masked-ip]:34587\nCoreDNS is running at https://[masked-ip]:34587/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy\n\nTo further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.\n\n$ kubectl get nodes -o custom-columns=NAME:.metadata.name,ROLE:.metadata.labels.node-role\\\\.kubernetes\\\\.io/control-plane,VERSION:.status.nodeInfo.kubeletVersion,RUNTIME:.status.nodeInfo.containerRuntimeVersion\nNAME                   ROLE   VERSION   RUNTIME\n[masked-node]          v1.35.0   containerd://2.2.0\n\n$ kubectl get crd --no-headers 2>/dev/null | wc -l\n0\n\n$ kubectl -n kube-system get deploy -o custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,DESIRED:.spec.replicas\nNAME      READY   DESIRED\ncoredns   2       2\n",
+      "indexPurpose": "設計や変更計画の入力になるクラスタ構成と基盤ワークロードの現状を取得します。",
+      "indexInspection": "API到達先、nodeのKubernetes/runtime version、CRD数、CoreDNSのREADYとDESIREDが同じ時点の記録になっているかを確認します。",
+      "width": 1400,
+      "height": 776,
+      "bytes": 87351,
+      "sha256": "2e478cc662105ba7ba190cc4b9337f7a32e3e8353fc12d8ad1ef83cb8e030bfe"
+    },
+    {
+      "id": "ch02-control-plane-readyz",
+      "chapter": "chapter02",
+      "file": "src/chapters/chapter02/images/ch02-control-plane-readyz-01.png",
+      "docsFile": "docs/chapters/chapter02/images/ch02-control-plane-readyz-01.png",
+      "anchor": "figure-ch02-control-plane-readyz-01",
+      "indexAnchor": "figure-index-ch02-control-plane-readyz-01",
+      "alt": "readyz各checkとcontrol plane PodのReady・restart状態を判断する出力",
+      "caption": "2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。readyzのetcd・informer-sync・post-start hookと、API server/controller/schedulerのReady・restartを照合し、control planeの観測時点の健全性を判断します。",
+      "environment": "Ubuntu 24.04 GitHub-hosted runner; disposable kind cluster",
+      "versions": {
+        "Kubernetes": "1.35.0",
+        "kubectl": "1.35.1",
+        "kind": "0.31.0"
+      },
+      "captureSource": "GitHub Actions run 29956126898",
+      "capturedAt": "2026-07-23",
+      "captureTimezone": "Asia/Tokyo (UTC+09:00)",
+      "dateBasis": "Command execution occurred on 2026-07-23 JST.",
+      "sourceKind": "terminal-output",
+      "maskedFields": [
+        "node name"
+      ],
+      "setupSummary": "The API readyz endpoint and static control-plane Pods were read after cluster readiness.",
+      "sourceCommands": [
+        "kubectl get --raw='/readyz?verbose' | grep -E 'etcd|informer-sync|poststarthook/start-kube-apiserver-admission-initializer|readyz check passed'",
+        "kubectl -n kube-system get pod -l tier=control-plane -o custom-columns=NAME:.metadata.name,READY:.status.containerStatuses[0].ready,RESTARTS:.status.containerStatuses[0].restartCount"
+      ],
+      "displayedTranscript": "$ kubectl get --raw='/readyz?verbose' | grep -E 'etcd|informer-sync|poststarthook/start-kube-apiserver-admission-initializer|readyz check passed'\n[+]etcd ok\n[+]etcd-readiness ok\n[+]informer-sync ok\n[+]poststarthook/crd-informer-synced ok\nreadyz check passed\n\n$ kubectl -n kube-system get pod -l tier=control-plane -o custom-columns=NAME:.metadata.name,READY:.status.containerStatuses[0].ready,RESTARTS:.status.containerStatuses[0].restartCount\nNAME                                           READY   RESTARTS\netcd-[masked-node]                      true    0\nkube-apiserver-[masked-node]            true    0\nkube-controller-manager-[masked-node]   true    0\nkube-scheduler-[masked-node]            true    0\n",
+      "indexPurpose": "APIが応答するだけでなく、依存checkとcontrol plane componentがそろって健全であることを確認します。",
+      "indexInspection": "readyz check passed、各PodのREADY=true、RESTARTS=0を見て、異常時は失敗したcheckまたはcomponentへ切り分けます。",
+      "width": 1400,
+      "height": 621,
+      "bytes": 72583,
+      "sha256": "248a14f60b2412cd488b453fc741f50d14d70977176a4ffb5ae2660d596a3dfb"
+    },
+    {
+      "id": "ch03-etcd-snapshot-status",
+      "chapter": "chapter03",
+      "file": "src/chapters/chapter03/images/ch03-etcd-snapshot-status-01.png",
+      "docsFile": "docs/chapters/chapter03/images/ch03-etcd-snapshot-status-01.png",
+      "anchor": "figure-ch03-etcd-snapshot-status-01",
+      "indexAnchor": "figure-index-ch03-etcd-snapshot-status-01",
+      "alt": "etcd snapshotの保存・server version・hash・revision・sizeを判断する出力",
+      "caption": "2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。etcdctlの保存完了とetcdutl statusのhash、revision、key数、size、version、PASS markerを見て、復旧演習へ渡せるsnapshotか判断します。",
+      "environment": "Ubuntu 24.04 GitHub-hosted runner; disposable kind cluster",
+      "versions": {
+        "Kubernetes": "1.35.0",
+        "kubectl": "1.35.1",
+        "kind": "0.31.0"
+      },
+      "captureSource": "GitHub Actions run 29956126898",
+      "capturedAt": "2026-07-23",
+      "captureTimezone": "Asia/Tokyo (UTC+09:00)",
+      "dateBasis": "Command execution occurred on 2026-07-23 JST.",
+      "sourceKind": "terminal-output",
+      "maskedFields": [
+        "snapshot path",
+        "IPv4 address"
+      ],
+      "setupSummary": "etcdctl and etcdutl were executed inside the disposable static etcd Pod with its client credentials.",
+      "sourceCommands": [
+        "etcdctl snapshot save /tmp/[masked-snapshot].db",
+        "etcdutl snapshot status /tmp/[masked-snapshot].db -w table"
+      ],
+      "displayedTranscript": "$ etcdctl snapshot save /tmp/[masked-snapshot].db\n{\"level\":\"info\",\"ts\":\"2026-07-22T20:41:34.660123Z\",\"caller\":\"snapshot/v3_snapshot.go:83\",\"msg\":\"created temporary db file\",\"path\":\"/tmp/[masked-snapshot].db.part\"}\n{\"level\":\"info\",\"ts\":\"2026-07-22T20:41:34.664838Z\",\"logger\":\"client\",\"caller\":\"v3@v3.6.6/maintenance.go:236\",\"msg\":\"opened snapshot stream; downloading\"}\n{\"level\":\"info\",\"ts\":\"2026-07-22T20:41:34.667093Z\",\"caller\":\"snapshot/v3_snapshot.go:96\",\"msg\":\"fetching snapshot\",\"endpoint\":\"https://[masked-ip]:2379\"}\n{\"level\":\"info\",\"ts\":\"2026-07-22T20:41:34.674200Z\",\"logger\":\"client\",\"caller\":\"v3@v3.6.6/maintenance.go:302\",\"msg\":\"completed snapshot read; closing\"}\n{\"level\":\"info\",\"ts\":\"2026-07-22T20:41:34.675276Z\",\"caller\":\"snapshot/v3_snapshot.go:111\",\"msg\":\"fetched snapshot\",\"endpoint\":\"https://[masked-ip]:2379\",\"size\":\"1.1 MB\",\"took\":\"15.099432ms\",\"etcd-version\":\"3.6.0\"}\n{\"level\":\"info\",\"ts\":\"2026-07-22T20:41:34.675366Z\",\"caller\":\"snapshot/v3_snapshot.go:121\",\"msg\":\"saved\",\"path\":\"/tmp/[masked-snapshot].db\"}\nSnapshot saved at /tmp/[masked-snapshot].db\nServer version 3.6.0\n\n$ etcdutl snapshot status /tmp/[masked-snapshot].db -w table\n+----------+----------+------------+------------+---------+\n|   HASH   | REVISION | TOTAL KEYS | TOTAL SIZE | VERSION |\n+----------+----------+------------+------------+---------+\n| f506b5d0 |      517 |        362 |     1.1 MB |   3.6.0 |\n+----------+----------+------------+------------+---------+\n\nSNAPSHOT_STATUS_GATE=PASS\n",
+      "indexPurpose": "snapshotコマンドの終了だけでなく、etcdutlで読める一貫した成果物が生成されたことを確認します。",
+      "indexInspection": "Snapshot saved、Server version、status表、SNAPSHOT_STATUS_GATE=PASSを照合し、revision・key数・sizeを復旧記録へ残します。",
+      "width": 1400,
+      "height": 931,
+      "bytes": 129852,
+      "sha256": "e88dca27d00fa01cb58cc26a2d5bb4e697d3a30d04f4f225b66c454992393a4c"
+    },
+    {
+      "id": "ch04-node-conditions",
+      "chapter": "chapter04",
+      "file": "src/chapters/chapter04/images/ch04-node-conditions-01.png",
+      "docsFile": "docs/chapters/chapter04/images/ch04-node-conditions-01.png",
+      "anchor": "figure-ch04-node-conditions-01",
+      "indexAnchor": "figure-index-ch04-node-conditions-01",
+      "alt": "Node Ready・各Pressure condition・allocatable resourceを判断する出力",
+      "caption": "2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。Ready、MemoryPressure、DiskPressure、PIDPressureとallocatable CPU・memory・Pod数を分けて見て、保守または配置判断に必要なnode状態を判断します。",
+      "environment": "Ubuntu 24.04 GitHub-hosted runner; disposable kind cluster",
+      "versions": {
+        "Kubernetes": "1.35.0",
+        "kubectl": "1.35.1",
+        "kind": "0.31.0"
+      },
+      "captureSource": "GitHub Actions run 29956126898",
+      "capturedAt": "2026-07-23",
+      "captureTimezone": "Asia/Tokyo (UTC+09:00)",
+      "dateBasis": "Command execution occurred on 2026-07-23 JST.",
+      "sourceKind": "terminal-output",
+      "maskedFields": [
+        "node name"
+      ],
+      "setupSummary": "Read-only node condition and allocatable-resource fields were captured.",
+      "sourceCommands": [
+        "kubectl get node -o custom-columns=NAME:.metadata.name,READY:.status.conditions[?(@.type==\"Ready\")].status,MEMORY_PRESSURE:.status.conditions[?(@.type==\"MemoryPressure\")].status,DISK_PRESSURE:.status.conditions[?(@.type==\"DiskPressure\")].status,PID_PRESSURE:.status.conditions[?(@.type==\"PIDPressure\")].status",
+        "kubectl get node -o custom-columns=NAME:.metadata.name,CPU:.status.allocatable.cpu,MEMORY:.status.allocatable.memory,PODS:.status.allocatable.pods"
+      ],
+      "displayedTranscript": "$ kubectl get node -o custom-columns=NAME:.metadata.name,READY:.status.conditions[?(@.type==\"Ready\")].status,MEMORY_PRESSURE:.status.conditions[?(@.type==\"MemoryPressure\")].status,DISK_PRESSURE:.status.conditions[?(@.type==\"DiskPressure\")].status,PID_PRESSURE:.status.conditions[?(@.type==\"PIDPressure\")].status\nNAME                   READY   MEMORY_PRESSURE   DISK_PRESSURE   PID_PRESSURE\n[masked-node]   True    False             False           False\n\n$ kubectl get node -o custom-columns=NAME:.metadata.name,CPU:.status.allocatable.cpu,MEMORY:.status.allocatable.memory,PODS:.status.allocatable.pods\nNAME                   CPU   MEMORY       PODS\n[masked-node]   4     16373460Ki   110\n",
+      "indexPurpose": "node保守前に、稼働状態とresource余力を同時に確認します。",
+      "indexInspection": "READY=True、各PRESSURE=Falseを確認し、allocatable値をworkload退避・再配置の前提と照合します。",
+      "width": 1400,
+      "height": 497,
+      "bytes": 65404,
+      "sha256": "526dd8789fb750b88cffdb2618513179e8c262e60c76e8ecc247b73065d0fb3b"
+    },
+    {
+      "id": "ch05-dns-service",
+      "chapter": "chapter05",
+      "file": "src/chapters/chapter05/images/ch05-dns-service-check-01.png",
+      "docsFile": "docs/chapters/chapter05/images/ch05-dns-service-check-01.png",
+      "anchor": "figure-ch05-dns-service-check-01",
+      "indexAnchor": "figure-index-ch05-dns-service-check-01",
+      "alt": "CoreDNS・Service・EndpointSlice・名前解決・HTTP到達性を判断する出力",
+      "caption": "2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。CoreDNS Ready、Service/EndpointSlice、nslookup結果、HTTP_SERVICE_OKを順に見て、DNS解決だけでなくService到達性まで成立しているか判断します。",
+      "environment": "Ubuntu 24.04 GitHub-hosted runner; disposable kind cluster",
+      "versions": {
+        "Kubernetes": "1.35.0",
+        "kubectl": "1.35.1",
+        "kind": "0.31.0"
+      },
+      "captureSource": "GitHub Actions run 29956126898",
+      "capturedAt": "2026-07-23",
+      "captureTimezone": "Asia/Tokyo (UTC+09:00)",
+      "dateBasis": "Command execution occurred on 2026-07-23 JST.",
+      "sourceKind": "terminal-output",
+      "maskedFields": [
+        "namespace name",
+        "IPv4 addresses"
+      ],
+      "setupSummary": "A one-shot BusyBox 1.36.1 Pod performed DNS and HTTP checks and was deleted.",
+      "sourceCommands": [
+        "kubectl -n kube-system get pod -l k8s-app=kube-dns",
+        "kubectl -n [masked-namespace] get svc,endpointslice",
+        "kubectl -n [masked-namespace] logs dns-check"
+      ],
+      "displayedTranscript": "$ kubectl -n kube-system get pod -l k8s-app=kube-dns\nNAME                       READY   STATUS    RESTARTS   AGE\ncoredns-7d764666f9-255b7   1/1     Running   0          20s\ncoredns-7d764666f9-9p8fg   1/1     Running   0          20s\n\n$ kubectl -n [masked-namespace] get svc,endpointslice\nNAME          TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE\nservice/web   ClusterIP   [masked-ip]   <none>        80/TCP    26s\n\nNAME                                       ADDRESSTYPE   PORTS   ENDPOINTS               AGE\nendpointslice.discovery.k8s.io/web-lkddl   IPv4          80      [masked-ip],[masked-ip]   20s\n\n$ kubectl -n [masked-namespace] logs dns-check\nServer:\t\t[masked-ip]\nAddress:\t[masked-ip]:53\n\n\nName:\tweb.[masked-namespace].svc.cluster.local\nAddress: [masked-ip]\n\nHTTP_SERVICE_OK\n",
+      "indexPurpose": "アプリ不調をDNS、Service selector、Endpoint、HTTPの層に分けて切り分けます。",
+      "indexInspection": "CoreDNSのReady、ServiceとEndpointSliceの対応、nslookupの応答、HTTP_SERVICE_OKを順に確認します。",
+      "width": 1400,
+      "height": 807,
+      "bytes": 86285,
+      "sha256": "848a3b06204d816ee382d4db435067baf1f46040016622edfcc3161988df5713"
+    },
+    {
+      "id": "ch06-storage-pvc",
+      "chapter": "chapter06",
+      "file": "src/chapters/chapter06/images/ch06-storage-pvc-check-01.png",
+      "docsFile": "docs/chapters/chapter06/images/ch06-storage-pvc-check-01.png",
+      "anchor": "figure-ch06-storage-pvc-check-01",
+      "indexAnchor": "figure-index-ch06-storage-pvc-check-01",
+      "alt": "provisioner checksum・StorageClass・PVC Bound・mount後readを判断する出力",
+      "caption": "2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。local-path-provisioner 0.0.34のchecksum、StorageClass、PVC Bound、mount先のverified読取を見て、provisionから利用まで成功したか判断します。",
+      "environment": "Ubuntu 24.04 GitHub-hosted runner; disposable kind cluster",
+      "versions": {
+        "Kubernetes": "1.35.0",
+        "kubectl": "1.35.1",
+        "kind": "0.31.0"
+      },
+      "captureSource": "GitHub Actions run 29956126898",
+      "capturedAt": "2026-07-23",
+      "captureTimezone": "Asia/Tokyo (UTC+09:00)",
+      "dateBasis": "Command execution occurred on 2026-07-23 JST.",
+      "sourceKind": "terminal-output",
+      "maskedFields": [
+        "namespace name",
+        "dynamic volume identifier"
+      ],
+      "setupSummary": "Pinned local-path-provisioner v0.0.34 and a disposable PVC/Pod were used for the storage check.",
+      "sourceCommands": [
+        "sha256sum --check local-path-storage-v0.0.34.yaml",
+        "kubectl get storageclass",
+        "kubectl -n [masked-namespace] get pvc ops-data",
+        "kubectl -n [masked-namespace] exec storage-check -- cat /data/result.txt"
+      ],
+      "displayedTranscript": "$ sha256sum --check local-path-storage-v0.0.34.yaml\nlocal-path-storage-v0.0.34.yaml: OK\n\n$ kubectl get storageclass\nNAME                 PROVISIONER             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE\nlocal-path           rancher.io/local-path   Delete          WaitForFirstConsumer   false                  8s\nstandard (default)   rancher.io/local-path   Delete          WaitForFirstConsumer   false                  34s\n\n$ kubectl -n [masked-namespace] get pvc ops-data\nNAME       STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE\nops-data   Bound    pvc-[masked-volume]   1Gi        RWO            standard       <unset>                 5s\n\n$ kubectl -n [masked-namespace] exec storage-check -- cat /data/result.txt\nverified\n",
+      "indexPurpose": "StorageClass選択からPVCのbind、Podからのreadまでを一つの証跡として確認します。",
+      "indexInspection": "manifest checksum OK、PVC STATUS=Bound、mount先のverifiedを照合し、provisionerと利用側の両方を確認します。",
+      "width": 1400,
+      "height": 745,
+      "bytes": 78424,
+      "sha256": "1106ede4cbe1c874605c918ed2dcff5d221ed5ff3c83fca2755a307dc87b8daa"
+    },
+    {
+      "id": "ch07-rbac-can-i",
+      "chapter": "chapter07",
+      "file": "src/chapters/chapter07/images/ch07-rbac-can-i-01.png",
+      "docsFile": "docs/chapters/chapter07/images/ch07-rbac-can-i-01.png",
+      "anchor": "figure-ch07-rbac-can-i",
+      "indexAnchor": "figure-index-ch07-rbac-can-i",
+      "alt": "ServiceAccountの許可操作と拒否操作からRBAC最小権限を判断する出力",
+      "caption": "2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。list podsのyes、delete deploymentsのno、Role/RoleBindingを照合し、ServiceAccountが必要な操作だけを持つか判断します。",
+      "environment": "Ubuntu 24.04 GitHub-hosted runner; disposable kind cluster",
+      "versions": {
+        "Kubernetes": "1.35.0",
+        "kubectl": "1.35.1",
+        "kind": "0.31.0"
+      },
+      "captureSource": "GitHub Actions run 29956126898",
+      "capturedAt": "2026-07-23",
+      "captureTimezone": "Asia/Tokyo (UTC+09:00)",
+      "dateBasis": "Command execution occurred on 2026-07-23 JST.",
+      "sourceKind": "terminal-output",
+      "maskedFields": [
+        "tenant namespace name"
+      ],
+      "setupSummary": "A disposable ServiceAccount, Role, and RoleBinding were used for positive and negative authorization checks.",
+      "sourceCommands": [
+        "kubectl -n [masked-tenant] auth can-i list pods --as=system:serviceaccount:[masked-tenant]:readonly",
+        "kubectl -n [masked-tenant] auth can-i delete deployments --as=system:serviceaccount:[masked-tenant]:readonly",
+        "kubectl -n [masked-tenant] get role,rolebinding"
+      ],
+      "displayedTranscript": "$ kubectl -n [masked-tenant] auth can-i list pods --as=system:serviceaccount:[masked-tenant]:readonly\nyes\n\n$ kubectl -n [masked-tenant] auth can-i delete deployments --as=system:serviceaccount:[masked-tenant]:readonly\nno\nDENY_GATE=PASS\n\n$ kubectl -n [masked-tenant] get role,rolebinding\nNAME                                        CREATED AT\nrole.rbac.authorization.k8s.io/pod-reader   2026-07-22T20:41:46Z\n\nNAME                                                  ROLE              AGE\nrolebinding.rbac.authorization.k8s.io/readonly-pods   Role/pod-reader   0s\n",
+      "indexPurpose": "許可したverbだけでなく、許可していない操作が拒否されることまで確認します。",
+      "indexInspection": "list pods=yes、delete deployments=no、DENY_GATE=PASSとRoleBindingの参照先を本文のRBAC定義と照合します。",
+      "width": 1400,
+      "height": 590,
+      "bytes": 54099,
+      "sha256": "d20a7a52822c975ac7261ec7727889384c5ebc8f06fb2001dd551124ff1de4a7"
+    },
+    {
+      "id": "ch07-pss-namespace-label",
+      "chapter": "chapter07",
+      "file": "src/chapters/chapter07/images/ch07-pss-namespace-label-02.png",
+      "docsFile": "docs/chapters/chapter07/images/ch07-pss-namespace-label-02.png",
+      "anchor": "figure-ch07-pss-namespace-label",
+      "indexAnchor": "figure-index-ch07-pss-namespace-label",
+      "alt": "namespaceのPSS enforce・warn・version label適用状態を判断する出力",
+      "caption": "2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。restrictedのenforce/warnと各version labelを見て、対象namespaceへ意図したPod Security Admission方針が適用されたか判断します。",
+      "environment": "Ubuntu 24.04 GitHub-hosted runner; disposable kind cluster",
+      "versions": {
+        "Kubernetes": "1.35.0",
+        "kubectl": "1.35.1",
+        "kind": "0.31.0"
+      },
+      "captureSource": "GitHub Actions run 29956126898",
+      "capturedAt": "2026-07-23",
+      "captureTimezone": "Asia/Tokyo (UTC+09:00)",
+      "dateBasis": "Command execution occurred on 2026-07-23 JST.",
+      "sourceKind": "terminal-output",
+      "maskedFields": [
+        "tenant namespace name"
+      ],
+      "setupSummary": "Restricted Pod Security Admission labels were applied to a disposable tenant namespace.",
+      "sourceCommands": [
+        "kubectl label ns [masked-tenant] pod-security.kubernetes.io/enforce=restricted pod-security.kubernetes.io/enforce-version=v1.35 pod-security.kubernetes.io/warn=restricted pod-security.kubernetes.io/warn-version=v1.35 --overwrite",
+        "kubectl get ns [masked-tenant] --show-labels"
+      ],
+      "displayedTranscript": "$ kubectl label ns [masked-tenant] pod-security.kubernetes.io/enforce=restricted pod-security.kubernetes.io/enforce-version=v1.35 pod-security.kubernetes.io/warn=restricted pod-security.kubernetes.io/warn-version=v1.35 --overwrite\nnamespace/[masked-tenant] labeled\n\n$ kubectl get ns [masked-tenant] --show-labels\nNAME       STATUS   AGE   LABELS\n[masked-tenant]   Active   0s    kubernetes.io/metadata.name=[masked-tenant],pod-security.kubernetes.io/enforce-version=v1.35,pod-security.kubernetes.io/enforce=restricted,pod-security.kubernetes.io/warn-version=v1.35,pod-security.kubernetes.io/warn=restricted\n",
+      "indexPurpose": "Pod Security Admissionのprofileとversion pinが対象namespaceへ反映されたことを確認します。",
+      "indexInspection": "enforce、warn、enforce-version、warn-versionの4 labelと値を確認し、例外namespaceの扱いは別の運用記録で管理します。",
+      "width": 1400,
+      "height": 466,
+      "bytes": 59585,
+      "sha256": "5d6d353727e2dc47fb02f52a4a69bb3a41054c9ccbe60eeb991c3d9ec06deb2c"
+    },
+    {
+      "id": "ch08-quota-limitrange",
+      "chapter": "chapter08",
+      "file": "src/chapters/chapter08/images/ch08-quota-limitrange-01.png",
+      "docsFile": "docs/chapters/chapter08/images/ch08-quota-limitrange-01.png",
+      "anchor": "figure-ch08-quota-limitrange-01",
+      "indexAnchor": "figure-index-ch08-quota-limitrange-01",
+      "alt": "ResourceQuota・LimitRangeとadmission後の既定resource値を判断する出力",
+      "caption": "2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。ResourceQuota、LimitRangeと、Nginx 1.27.5-alpine Podのserver dry-runに注入されたrequests/limitsを見て、tenant guardrailが機能するか判断します。",
+      "environment": "Ubuntu 24.04 GitHub-hosted runner; disposable kind cluster",
+      "versions": {
+        "Kubernetes": "1.35.0",
+        "kubectl": "1.35.1",
+        "kind": "0.31.0"
+      },
+      "captureSource": "GitHub Actions run 29956126898",
+      "capturedAt": "2026-07-23",
+      "captureTimezone": "Asia/Tokyo (UTC+09:00)",
+      "dateBasis": "Command execution occurred on 2026-07-23 JST.",
+      "sourceKind": "terminal-output",
+      "maskedFields": [
+        "tenant namespace name",
+        "resource creation timestamp"
+      ],
+      "setupSummary": "A disposable tenant namespace applied ResourceQuota and LimitRange; server dry-run observed admitted Pod defaults.",
+      "sourceCommands": [
+        "kubectl -n [masked-tenant] get resourcequota compute-quota",
+        "kubectl -n [masked-tenant] get limitrange container-defaults",
+        "kubectl -n [masked-tenant] run sample --restart=Never --image=nginx:1.27.5-alpine --dry-run=server -o json | jq '{requests:.spec.containers[0].resources.requests,limits:.spec.containers[0].resources.limits}'"
+      ],
+      "displayedTranscript": "$ kubectl -n [masked-tenant] get resourcequota compute-quota\nNAME            REQUEST                                                 LIMIT                                   AGE\ncompute-quota   pods: 0/10, requests.cpu: 0/2, requests.memory: 0/2Gi   limits.cpu: 0/4, limits.memory: 0/4Gi   1s\n\n$ kubectl -n [masked-tenant] get limitrange container-defaults\nNAME                 CREATED AT\ncontainer-defaults   2026-07-22T20:41:46Z\n\n$ kubectl -n [masked-tenant] run sample --restart=Never --image=nginx:1.27.5-alpine --dry-run=server -o json | jq '{requests:.spec.containers[0].resources.requests,limits:.spec.containers[0].resources.limits}'\n{\n  \"requests\": {\n    \"cpu\": \"100m\",\n    \"memory\": \"64Mi\"\n  },\n  \"limits\": {\n    \"cpu\": \"500m\",\n    \"memory\": \"256Mi\"\n  }\n}\n",
+      "indexPurpose": "quotaの上限だけでなく、resource未指定PodへLimitRange既定値が実際に注入されることを確認します。",
+      "indexInspection": "quota hard値とdry-run後のrequests/limitsを照合し、defaultRequestとdefaultが運用標準どおりかを確認します。",
+      "width": 1400,
+      "height": 869,
+      "bytes": 71741,
+      "sha256": "c8bab30b5616e5c0938ac3c3fc519981f9500b15c1cfb3671bf019e002723f35"
+    },
+    {
+      "id": "ch09-apiserver-metrics",
+      "chapter": "chapter09",
+      "file": "src/chapters/chapter09/images/ch09-apiserver-metrics-01.png",
+      "docsFile": "docs/chapters/chapter09/images/ch09-apiserver-metrics-01.png",
+      "anchor": "figure-ch09-apiserver-metrics-01",
+      "indexAnchor": "figure-index-ch09-apiserver-metrics-01",
+      "alt": "API server inflight requestとworkqueue depthの取得可否を判断する出力",
+      "caption": "2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。apiserver_current_inflight_requestsとworkqueue_depthの実値、METRICS_ENDPOINT_GATE=PASSを見て、control plane監視の入口と欠測有無を判断します。",
+      "environment": "Ubuntu 24.04 GitHub-hosted runner; disposable kind cluster",
+      "versions": {
+        "Kubernetes": "1.35.0",
+        "kubectl": "1.35.1",
+        "kind": "0.31.0"
+      },
+      "captureSource": "GitHub Actions run 29956126898",
+      "capturedAt": "2026-07-23",
+      "captureTimezone": "Asia/Tokyo (UTC+09:00)",
+      "dateBasis": "Command execution occurred on 2026-07-23 JST.",
+      "sourceKind": "terminal-output",
+      "maskedFields": [],
+      "setupSummary": "Selected non-secret API server metrics were read directly from the disposable API endpoint.",
+      "sourceCommands": [
+        "kubectl get --raw /metrics | grep -m 6 ^'apiserver_current_inflight_requests'",
+        "kubectl get --raw /metrics | grep -m 6 ^'workqueue_depth'"
+      ],
+      "displayedTranscript": "$ kubectl get --raw /metrics | grep -m 6 ^'apiserver_current_inflight_requests'\napiserver_current_inflight_requests{request_kind=\"mutating\"} 2\napiserver_current_inflight_requests{request_kind=\"readOnly\"} 1\n\n$ kubectl get --raw /metrics | grep -m 6 ^'workqueue_depth'\nworkqueue_depth{name=\"APIServiceRegistrationController\"} 0\nworkqueue_depth{name=\"DiscoveryController\"} 0\nworkqueue_depth{name=\"DynamicCABundle-aggregator-proxy-cert\"} 0\nworkqueue_depth{name=\"DynamicCABundle-client-ca-bundle\"} 0\nworkqueue_depth{name=\"DynamicCABundle-request-header\"} 0\nworkqueue_depth{name=\"DynamicCABundle-serving-cert\"} 0\n\nMETRICS_ENDPOINT_GATE=PASS\n",
+      "indexPurpose": "監視製品に依存せず、control planeの飽和・queue観測に必要なmetricが取得できることを確認します。",
+      "indexInspection": "mutating/readOnly inflight値、複数controllerのworkqueue_depth、PASS markerを見て、0値と欠測を区別します。",
+      "width": 1400,
+      "height": 559,
+      "bytes": 82977,
+      "sha256": "4c14294436851d44340a3facab77f6cafb4a5cbbe4b197293643c2902e11856f"
+    },
+    {
+      "id": "ch10-version-skew",
+      "chapter": "chapter10",
+      "file": "src/chapters/chapter10/images/ch10-version-skew-inventory-01.png",
+      "docsFile": "docs/chapters/chapter10/images/ch10-version-skew-inventory-01.png",
+      "anchor": "figure-ch10-version-skew-inventory-01",
+      "indexAnchor": "figure-index-ch10-version-skew-inventory-01",
+      "alt": "kubectl・API server・kubeadm・kubelet・runtimeのversion skewを判断する出力",
+      "caption": "2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。kubectl client、API server、kubeadm、kubelet、containerd 2.2.0を同じ記録で見て、upgrade前のversion skewと対象componentを判断します。",
+      "environment": "Ubuntu 24.04 GitHub-hosted runner; disposable kind cluster",
+      "versions": {
+        "Kubernetes": "1.35.0",
+        "kubectl": "1.35.1",
+        "kind": "0.31.0"
+      },
+      "captureSource": "GitHub Actions run 29956126898",
+      "capturedAt": "2026-07-23",
+      "captureTimezone": "Asia/Tokyo (UTC+09:00)",
+      "dateBasis": "Command execution occurred on 2026-07-23 JST.",
+      "sourceKind": "terminal-output",
+      "maskedFields": [
+        "node name"
+      ],
+      "setupSummary": "Version commands were read from kubectl, the disposable control-plane node, and node status.",
+      "sourceCommands": [
+        "kubectl version",
+        "kubeadm version -o short  # executed inside the control-plane node",
+        "kubectl get node -o custom-columns=NAME:.metadata.name,KUBELET:.status.nodeInfo.kubeletVersion,RUNTIME:.status.nodeInfo.containerRuntimeVersion"
+      ],
+      "displayedTranscript": "$ kubectl version\nClient Version: v1.35.1\nKustomize Version: v5.7.1\nServer Version: v1.35.0\n\n$ kubeadm version -o short  # executed inside the control-plane node\nv1.35.0\n\n$ kubectl get node -o custom-columns=NAME:.metadata.name,KUBELET:.status.nodeInfo.kubeletVersion,RUNTIME:.status.nodeInfo.containerRuntimeVersion\nNAME                   KUBELET   RUNTIME\n[masked-node]   v1.35.0   containerd://2.2.0\n\nVERSION_SKEW_INVENTORY=RECORDED\n",
+      "indexPurpose": "upgrade計画前にclient、control plane、node、runtimeのversionを同一時点で棚卸しします。",
+      "indexInspection": "Client/Server、kubeadm、KUBELET、RUNTIMEの値を公式version skew policyと照合し、更新順序を決めます。",
+      "width": 1400,
+      "height": 590,
+      "bytes": 56920,
+      "sha256": "92cf9fd4f2cd59c64e1ec25c052be8a529d277c98082acdddc52c07e829c2f21"
+    },
+    {
+      "id": "ch11-service-recovery",
+      "chapter": "chapter11",
+      "file": "src/chapters/chapter11/images/ch11-service-recovery-01.png",
+      "docsFile": "docs/chapters/chapter11/images/ch11-service-recovery-01.png",
+      "anchor": "figure-ch11-service-recovery-01",
+      "indexAnchor": "figure-index-ch11-service-recovery-01",
+      "alt": "Service selector誤設定によるEndpoint消失と復旧を判断する出力",
+      "caption": "2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。正常Endpoint、誤selector適用後のunset、selector復元後のEndpoint再出現、SERVICE_RECOVERY_GATE=PASSを比較し、原因と復旧を判断します。",
+      "environment": "Ubuntu 24.04 GitHub-hosted runner; disposable kind cluster",
+      "versions": {
+        "Kubernetes": "1.35.0",
+        "kubectl": "1.35.1",
+        "kind": "0.31.0"
+      },
+      "captureSource": "GitHub Actions run 29956126898",
+      "capturedAt": "2026-07-23",
+      "captureTimezone": "Asia/Tokyo (UTC+09:00)",
+      "dateBasis": "Command execution occurred on 2026-07-23 JST.",
+      "sourceKind": "terminal-output",
+      "maskedFields": [
+        "namespace name",
+        "IPv4 addresses"
+      ],
+      "setupSummary": "A deliberate Service selector mismatch was introduced and restored in the disposable cluster.",
+      "sourceCommands": [
+        "kubectl -n [masked-namespace] get endpointslice -l kubernetes.io/service-name=web",
+        "kubectl -n [masked-namespace] patch svc web -p '{\"spec\":{\"selector\":{\"app\":\"wrong\"}}}'",
+        "kubectl -n [masked-namespace] get endpointslice -l kubernetes.io/service-name=web",
+        "kubectl -n [masked-namespace] patch svc web -p '{\"spec\":{\"selector\":{\"app\":\"web\"}}}'",
+        "kubectl -n [masked-namespace] get endpointslice -l kubernetes.io/service-name=web"
+      ],
+      "displayedTranscript": "$ kubectl -n [masked-namespace] get endpointslice -l kubernetes.io/service-name=web\nNAME        ADDRESSTYPE   PORTS   ENDPOINTS               AGE\nweb-lkddl   IPv4          80      [masked-ip],[masked-ip]   29s\n\n$ kubectl -n [masked-namespace] patch svc web -p '{\"spec\":{\"selector\":{\"app\":\"wrong\"}}}'\nservice/web patched\n\n$ kubectl -n [masked-namespace] get endpointslice -l kubernetes.io/service-name=web\nNAME        ADDRESSTYPE   PORTS     ENDPOINTS   AGE\nweb-lkddl   IPv4          <unset>   <unset>     31s\n\n$ kubectl -n [masked-namespace] patch svc web -p '{\"spec\":{\"selector\":{\"app\":\"web\"}}}'\nservice/web patched\n\n$ kubectl -n [masked-namespace] get endpointslice -l kubernetes.io/service-name=web\nNAME        ADDRESSTYPE   PORTS   ENDPOINTS               AGE\nweb-lkddl   IPv4          80      [masked-ip],[masked-ip]   33s\n\nSERVICE_RECOVERY_GATE=PASS\n",
+      "indexPurpose": "変更点を一つに限定し、障害の再現と復旧確認を同じEndpointSliceで追跡します。",
+      "indexInspection": "変更前のEndpoint、誤selector時のunset、復元後のEndpoint、PASS markerを時系列で確認します。",
+      "width": 1400,
+      "height": 745,
+      "bytes": 82938,
+      "sha256": "d1d5b9c5fab8944ea138bc4be55beef5b40c55b4e4b2de451146da24b02ea536"
+    },
+    {
+      "id": "ch12-policy-gate",
+      "chapter": "chapter12",
+      "file": "src/chapters/chapter12/images/ch12-policy-gate-01.png",
+      "docsFile": "docs/chapters/chapter12/images/ch12-policy-gate-01.png",
+      "anchor": "figure-ch12-policy-gate-01",
+      "indexAnchor": "figure-index-ch12-policy-gate-01",
+      "alt": "PSS違反manifestの拒否と準拠manifestのserver dry-run成功を判断する出力",
+      "caption": "2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。BusyBox 1.36.1のunsafe Podがrestricted policyで拒否され、準拠Podがserver dry-runを通ることと両gate markerを見て、automation guardrailを判断します。",
+      "environment": "Ubuntu 24.04 GitHub-hosted runner; disposable kind cluster",
+      "versions": {
+        "Kubernetes": "1.35.0",
+        "kubectl": "1.35.1",
+        "kind": "0.31.0"
+      },
+      "captureSource": "GitHub Actions run 29956126898",
+      "capturedAt": "2026-07-23",
+      "captureTimezone": "Asia/Tokyo (UTC+09:00)",
+      "dateBasis": "Command execution occurred on 2026-07-23 JST.",
+      "sourceKind": "terminal-output",
+      "maskedFields": [
+        "namespace name",
+        "runner workspace path"
+      ],
+      "setupSummary": "Restricted Pod Security Admission evaluated unsafe and compliant disposable Pod manifests using server dry-run.",
+      "sourceCommands": [
+        "kubectl apply --dry-run=server -f unsafe-pod.yaml",
+        "kubectl apply --dry-run=server -f restricted-pod.yaml"
+      ],
+      "displayedTranscript": "$ kubectl apply --dry-run=server -f unsafe-pod.yaml\nError from server (Forbidden): error when creating \"[masked-workspace]\": pods \"unsafe\" is forbidden: violates PodSecurity \"restricted:v1.35\": allowPrivilegeEscalation != false (container \"app\" must set securityContext.allowPrivilegeEscalation=false), unrestricted capabilities (container \"app\" must set securityContext.capabilities.drop=[\"ALL\"]), runAsNonRoot != true (pod or container \"app\" must set securityContext.runAsNonRoot=true), seccompProfile (pod or container \"app\" must set securityContext.seccompProfile.type to \"RuntimeDefault\" or \"Localhost\")\nPOLICY_GATE_REJECTED_AS_EXPECTED\n\n$ kubectl apply --dry-run=server -f restricted-pod.yaml\npod/compliant created (server dry run)\nCOMPLIANT_MANIFEST_GATE=PASS\n",
+      "indexPurpose": "Policy as Codeの価値を、違反の拒否と準拠manifestの受理の両方で確認します。",
+      "indexInspection": "Forbidden理由、POLICY_GATE_REJECTED_AS_EXPECTED、compliant Podのserver dry-run、COMPLIANT_MANIFEST_GATE=PASSを確認します。",
+      "width": 1400,
+      "height": 528,
+      "bytes": 75530,
+      "sha256": "550ea7ac4fcc0f4c140d8ab37a58c856827f8bc19cb673559a59b0fba516a202"
+    }
+  ]
+}

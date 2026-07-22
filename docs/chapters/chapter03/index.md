@@ -186,6 +186,12 @@ manifest のパス、所有者・権限、YAML の妥当性、kubelet が参照�
 
 再読込だけを理由に kubelet を再起動すると、kubelet が管理する他の Control Plane static Pod にも影響して API の停止窓を広げる可能性があります。etcd のリストア自体が API Server の停止を伴う場合でも、不要な kubelet restart を重ねると可用性リスクと切り戻しの複雑さが増すため、manifest 監視による自動反映を第一選択にします。
 
+### 実行証跡：etcd snapshotの保存・server version・hash・revision・sizeを判断する出力 {#figure-ch03-etcd-snapshot-status-01}
+
+![etcd snapshotの保存・server version・hash・revision・sizeを判断する出力](./images/ch03-etcd-snapshot-status-01.png)
+
+_2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。etcdctlの保存完了とetcdutl statusのhash、revision、key数、size、version、PASS markerを見て、復旧演習へ渡せるsnapshotか判断します。_
+
 ## 注意点（運用）
 - リストアはクラスタ停止を伴う場合があります。実施条件、影響範囲、判断責任者を事前に定義してください（要確認）。
 - バックアップの保管先（オブジェクトストレージ等）も障害します。可用性とアクセス制御を設計に含めます。

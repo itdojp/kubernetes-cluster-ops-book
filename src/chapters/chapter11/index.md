@@ -66,6 +66,12 @@
 - 復旧確認（smoke test、SLO 影響確認）
 - 証跡（チケット、時系列、変更内容、ログの保管先）
 
+### 実行証跡：Service selector誤設定によるEndpoint消失と復旧を判断する出力 {#figure-ch11-service-recovery-01}
+
+![Service selector誤設定によるEndpoint消失と復旧を判断する出力](./images/ch11-service-recovery-01.png)
+
+_2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。正常Endpoint、誤selector適用後のunset、selector復元後のEndpoint再出現、SERVICE_RECOVERY_GATE=PASSを比較し、原因と復旧を判断します。_
+
 ## 実務チェック観点（最低5項目）
 - Severity 定義と役割分担（IC/Comms/Scribe）が整備され、定期的に演習されている
 - 監視/ログ/イベント/監査ログが復旧に使える形で収集され、証跡を残せる

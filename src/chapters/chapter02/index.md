@@ -51,6 +51,12 @@ Control Plane はクラスタの制御系であり、API の可用性・整合�
 - etcd は stacked / external の選択が必要です。
 - 証明書更新、バックアップ、復旧手順が必須です。
 
+### 実行証跡：readyz各checkとcontrol plane PodのReady・restart状態を判断する出力 {#figure-ch02-control-plane-readyz-01}
+
+![readyz各checkとcontrol plane PodのReady・restart状態を判断する出力](./images/ch02-control-plane-readyz-01.png)
+
+_2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。readyzのetcd・informer-sync・post-start hookと、API server/controller/schedulerのReady・restartを照合し、control planeの観測時点の健全性を判断します。_
+
 ## 注意点（運用）
 - `kubectl get --raw='/readyz?verbose'` 等の参照は、環境により権限や到達性の制約があります（要確認）。
 - etcd のバックアップがあっても、リストア手順と演習がない場合は復旧できません（第3章）。

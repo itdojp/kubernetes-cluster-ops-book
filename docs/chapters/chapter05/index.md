@@ -47,6 +47,12 @@ title: "第5章：ネットワーク設計と運用"
 - NetworkPolicy を「既定拒否」にする前に、通信要件の棚卸しと段階導入（warn 相当→限定 enforce）を行います。
 - 強い隔離要件がある場合、NetworkPolicy だけで担保しようとせず、クラスタ分離/ノードプール分離も併せて検討します。
 
+### 実行証跡：CoreDNS・Service・EndpointSlice・名前解決・HTTP到達性を判断する出力 {#figure-ch05-dns-service-check-01}
+
+![CoreDNS・Service・EndpointSlice・名前解決・HTTP到達性を判断する出力](./images/ch05-dns-service-check-01.png)
+
+_2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。CoreDNS Ready、Service/EndpointSlice、nslookup結果、HTTP_SERVICE_OKを順に見て、DNS解決だけでなくService到達性まで成立しているか判断します。_
+
 ## 注意点（運用）
 - IP 枯渇は顕在化すると影響が大きいため、早期に検知できる監視と拡張手順（要確認）を用意します。
 - DNS はアプリ不調に見えやすい領域です。CoreDNS の健全性（失敗率/レイテンシ/欠測）をクラスタ標準で監視します。

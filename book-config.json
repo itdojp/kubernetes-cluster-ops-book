@@ -191,7 +191,7 @@
       {
         "id": "appendix-d",
         "title": "付録D：図表索引",
-        "description": "第7章で公開している PNG 図版の用途と確認観点",
+        "description": "全13章で公開する14点のP0 visual evidenceと確認観点",
         "order": 18,
         "srcPath": "src/appendices/appendix-d/index.md",
         "docsPath": "docs/appendices/appendix-d/index.md",

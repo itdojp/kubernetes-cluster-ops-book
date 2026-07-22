@@ -48,6 +48,12 @@
 - 運用性: 監視/ログ/復旧/変更管理が標準化されているか
 - コスト: 需要変動、予約/割引、過剰割当、可視化の仕組みがあるか
 
+### 実行証跡：API endpoint・node version・runtime・CRD・基盤Deploymentの棚卸し結果を判断する出力 {#figure-ch01-cluster-inventory-01}
+
+![API endpoint・node version・runtime・CRD・基盤Deploymentの棚卸し結果を判断する出力](./images/ch01-cluster-inventory-01.png)
+
+_2026-07-23（JST）取得。Ubuntu 24.04 GitHub-hosted runner、Kubernetes 1.35.0、kubectl 1.35.1、kind 0.31.0。cluster-info、node version/runtime、CRD数、CoreDNSのdesired/readyを見て、設計判断に必要な現行inventoryが取得できたか判断します。_
+
 ## 実務チェック観点（最低5項目）
 - 要件（SLO/RTO/RPO/セキュリティ）と設計判断のトレーサビリティがある
 - 監視/ログ/復旧の三点セットが、クラスタ標準として定義されている
