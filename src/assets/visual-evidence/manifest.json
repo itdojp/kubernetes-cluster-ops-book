@@ -36,9 +36,9 @@
       "indexPurpose": "変更作業へ入る前に、責任者・切り戻し・検証・証跡の必須項目がそろっていることを確認します。",
       "indexInspection": "jqの真偽値とCHANGE_RECORD_GATE=PASSを見て、changeId、ownerRole、rollback、verification、evidenceが欠けていないかを確認します。",
       "width": 1400,
-      "height": 807,
-      "bytes": 67875,
-      "sha256": "a539fff5bf0175b3f0f9f19cf4b7429a8a52881d8cc3150ba57feb8c51391611"
+      "height": 948,
+      "bytes": 16379,
+      "sha256": "ca48a7358331e3006d2a021ae1a29faf5e3541c090e6d4d843f7bc6c9bd1ea79"
     },
     {
       "id": "ch01-cluster-inventory",
@@ -77,9 +77,9 @@
       "indexPurpose": "設計や変更計画の入力になるクラスタ構成と基盤ワークロードの現状を取得します。",
       "indexInspection": "API到達先、nodeのKubernetes/runtime version、CRD数、CoreDNSのREADYとDESIREDが同じ時点の記録になっているかを確認します。",
       "width": 1400,
-      "height": 776,
-      "bytes": 87351,
-      "sha256": "2e478cc662105ba7ba190cc4b9337f7a32e3e8353fc12d8ad1ef83cb8e030bfe"
+      "height": 912,
+      "bytes": 20908,
+      "sha256": "754a7fc80312b93aac476dc1525343755a4accc1c1cf70b61c65895fb7c6359e"
     },
     {
       "id": "ch02-control-plane-readyz",
@@ -113,9 +113,9 @@
       "indexPurpose": "APIが応答するだけでなく、依存checkとcontrol plane componentがそろって健全であることを確認します。",
       "indexInspection": "readyz check passed、各PodのREADY=true、RESTARTS=0を見て、異常時は失敗したcheckまたはcomponentへ切り分けます。",
       "width": 1400,
-      "height": 621,
-      "bytes": 72583,
-      "sha256": "248a14f60b2412cd488b453fc741f50d14d70977176a4ffb5ae2660d596a3dfb"
+      "height": 732,
+      "bytes": 17165,
+      "sha256": "7025f41d35a3d6f28ddb1e6fc7897a62eac92380001fb2bf2306ab29f42454cd"
     },
     {
       "id": "ch03-etcd-snapshot-status",
@@ -150,9 +150,9 @@
       "indexPurpose": "snapshotコマンドの終了だけでなく、etcdutlで読める一貫した成果物が生成されたことを確認します。",
       "indexInspection": "Snapshot saved、Server version、status表、SNAPSHOT_STATUS_GATE=PASSを照合し、revision・key数・sizeを復旧記録へ残します。",
       "width": 1400,
-      "height": 931,
-      "bytes": 129852,
-      "sha256": "e88dca27d00fa01cb58cc26a2d5bb4e697d3a30d04f4f225b66c454992393a4c"
+      "height": 1236,
+      "bytes": 32973,
+      "sha256": "0aac8892ee79bdfc856fc3f58a55c2e6c9b785310c6ff9bcb80e34c3560cb944"
     },
     {
       "id": "ch04-node-conditions",
@@ -186,9 +186,9 @@
       "indexPurpose": "node保守前に、稼働状態とresource余力を同時に確認します。",
       "indexInspection": "READY=True、各PRESSURE=Falseを確認し、allocatable値をworkload退避・再配置の前提と照合します。",
       "width": 1400,
-      "height": 497,
-      "bytes": 65404,
-      "sha256": "526dd8789fb750b88cffdb2618513179e8c262e60c76e8ecc247b73065d0fb3b"
+      "height": 624,
+      "bytes": 16236,
+      "sha256": "6fbb3b8c3e6276c773fa796d8101141c4e5b584e7bd783511eb0f87a0c8bb913"
     },
     {
       "id": "ch05-dns-service",
@@ -224,9 +224,9 @@
       "indexPurpose": "アプリ不調をDNS、Service selector、Endpoint、HTTPの層に分けて切り分けます。",
       "indexInspection": "CoreDNSのReady、ServiceとEndpointSliceの対応、nslookupの応答、HTTP_SERVICE_OKを順に確認します。",
       "width": 1400,
-      "height": 807,
-      "bytes": 86285,
-      "sha256": "848a3b06204d816ee382d4db435067baf1f46040016622edfcc3161988df5713"
+      "height": 1020,
+      "bytes": 19705,
+      "sha256": "df93b2d428df4e1c577e8cd497ecfe7d14a236fb616e9f2a205709858e61bae0"
     },
     {
       "id": "ch06-storage-pvc",
@@ -263,9 +263,9 @@
       "indexPurpose": "StorageClass選択からPVCのbind、Podからのreadまでを一つの証跡として確認します。",
       "indexInspection": "manifest checksum OK、PVC STATUS=Bound、mount先のverifiedを照合し、provisionerと利用側の両方を確認します。",
       "width": 1400,
-      "height": 745,
-      "bytes": 78424,
-      "sha256": "1106ede4cbe1c874605c918ed2dcff5d221ed5ff3c83fca2755a307dc87b8daa"
+      "height": 876,
+      "bytes": 18878,
+      "sha256": "8d324d63421f6cd5a4f1b6b908cf4fe7088cb86ca1ced5ccfa43cba68c994844"
     },
     {
       "id": "ch07-rbac-can-i",
@@ -300,9 +300,9 @@
       "indexPurpose": "許可したverbだけでなく、許可していない操作が拒否されることまで確認します。",
       "indexInspection": "list pods=yes、delete deployments=no、DENY_GATE=PASSとRoleBindingの参照先を本文のRBAC定義と照合します。",
       "width": 1400,
-      "height": 590,
-      "bytes": 54099,
-      "sha256": "d20a7a52822c975ac7261ec7727889384c5ebc8f06fb2001dd551124ff1de4a7"
+      "height": 732,
+      "bytes": 14206,
+      "sha256": "74b2cdb617020727b271786cb56808b8fab2ea721cd6f27e7e996ad29ac604c9"
     },
     {
       "id": "ch07-pss-namespace-label",
@@ -336,9 +336,9 @@
       "indexPurpose": "Pod Security Admissionのprofileとversion pinが対象namespaceへ反映されたことを確認します。",
       "indexInspection": "enforce、warn、enforce-version、warn-versionの4 labelと値を確認し、例外namespaceの扱いは別の運用記録で管理します。",
       "width": 1400,
-      "height": 466,
-      "bytes": 59585,
-      "sha256": "5d6d353727e2dc47fb02f52a4a69bb3a41054c9ccbe60eeb991c3d9ec06deb2c"
+      "height": 588,
+      "bytes": 15526,
+      "sha256": "e48f949873d85136b7b739ffca36fb09a567d27bb0ba9bc6176a26502dae195f"
     },
     {
       "id": "ch08-quota-limitrange",
@@ -374,9 +374,9 @@
       "indexPurpose": "quotaの上限だけでなく、resource未指定PodへLimitRange既定値が実際に注入されることを確認します。",
       "indexInspection": "quota hard値とdry-run後のrequests/limitsを照合し、defaultRequestとdefaultが運用標準どおりかを確認します。",
       "width": 1400,
-      "height": 869,
-      "bytes": 71741,
-      "sha256": "c8bab30b5616e5c0938ac3c3fc519981f9500b15c1cfb3671bf019e002723f35"
+      "height": 984,
+      "bytes": 18591,
+      "sha256": "3ce10e4b405f2dc45dac808b25458ee9f66580183e9f100442f253087e76c4db"
     },
     {
       "id": "ch09-apiserver-metrics",
@@ -408,9 +408,9 @@
       "indexPurpose": "監視製品に依存せず、control planeの飽和・queue観測に必要なmetricが取得できることを確認します。",
       "indexInspection": "mutating/readOnly inflight値、複数controllerのworkqueue_depth、PASS markerを見て、0値と欠測を区別します。",
       "width": 1400,
-      "height": 559,
-      "bytes": 82977,
-      "sha256": "4c14294436851d44340a3facab77f6cafb4a5cbbe4b197293643c2902e11856f"
+      "height": 624,
+      "bytes": 17120,
+      "sha256": "becc9436b5533162c16e45eec1946fcf3faedaab2fa8bd592c557941eee27c01"
     },
     {
       "id": "ch10-version-skew",
@@ -445,9 +445,9 @@
       "indexPurpose": "upgrade計画前にclient、control plane、node、runtimeのversionを同一時点で棚卸しします。",
       "indexInspection": "Client/Server、kubeadm、KUBELET、RUNTIMEの値を公式version skew policyと照合し、更新順序を決めます。",
       "width": 1400,
-      "height": 590,
-      "bytes": 56920,
-      "sha256": "92cf9fd4f2cd59c64e1ec25c052be8a529d277c98082acdddc52c07e829c2f21"
+      "height": 696,
+      "bytes": 13035,
+      "sha256": "34b6a96a774c02095a67f58972b826fe0f105f15133b38ea847f6be6b7250b0c"
     },
     {
       "id": "ch11-service-recovery",
@@ -485,9 +485,9 @@
       "indexPurpose": "変更点を一つに限定し、障害の再現と復旧確認を同じEndpointSliceで追跡します。",
       "indexInspection": "変更前のEndpoint、誤selector時のunset、復元後のEndpoint、PASS markerを時系列で確認します。",
       "width": 1400,
-      "height": 745,
-      "bytes": 82938,
-      "sha256": "d1d5b9c5fab8944ea138bc4be55beef5b40c55b4e4b2de451146da24b02ea536"
+      "height": 984,
+      "bytes": 21491,
+      "sha256": "2475d99045135842374e2f516b30e7b11b7bfaa793680b1d21702d67f04736d8"
     },
     {
       "id": "ch12-policy-gate",
@@ -522,9 +522,48 @@
       "indexPurpose": "Policy as Codeの価値を、違反の拒否と準拠manifestの受理の両方で確認します。",
       "indexInspection": "Forbidden理由、POLICY_GATE_REJECTED_AS_EXPECTED、compliant Podのserver dry-run、COMPLIANT_MANIFEST_GATE=PASSを確認します。",
       "width": 1400,
-      "height": 528,
-      "bytes": 75530,
-      "sha256": "550ea7ac4fcc0f4c140d8ab37a58c856827f8bc19cb673559a59b0fba516a202"
+      "height": 660,
+      "bytes": 18927,
+      "sha256": "5e66f534c33740623c8d2beb68e64b7a137a98f6948b00f9ddfb53bc4b09e979"
     }
-  ]
+  ],
+  "captureAttestation": {
+    "repository": "itdojp/kubernetes-cluster-ops-book",
+    "runId": 29956126898,
+    "runUrl": "https://github.com/itdojp/kubernetes-cluster-ops-book/actions/runs/29956126898",
+    "workflowName": "Temporary Issue 16 visual evidence capture",
+    "workflowPath": ".github/workflows/issue-16-capture.yml",
+    "event": "push",
+    "headBranch": "codex/issue-16-capture",
+    "headSha": "035e378825b79e45850c4f7f12ab84877f6f9038",
+    "runAttempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "createdAt": "2026-07-22T20:40:48Z",
+    "completedAt": "2026-07-22T20:41:55Z",
+    "jobName": "capture",
+    "requiredSuccessfulSteps": [
+      "Install pinned kubectl and kind",
+      "Capture and sanitize actual command output",
+      "Upload sanitized transcripts only"
+    ],
+    "artifactName": "issue-16-sanitized-transcripts",
+    "artifactId": 8544117974,
+    "artifactSizeBytes": 6620,
+    "artifactSha256": "e529d9e6967dc1fdca3fafdfa6ab23ee9fb54e1141c43ab43b341783d6639da7",
+    "artifactDigestSource": "actions/upload-artifact@v7 run log",
+    "artifactDeletedAfterVerification": true,
+    "sourceTranscriptCount": 14,
+    "postProcessing": [
+      "mask disposable namespace fixture names",
+      "normalize line endings",
+      "deterministically render checked transcript"
+    ],
+    "rendererSha256": "17bd46c3b6e755413e3d28550995ee0c46e8e2b3d272e58285b5e299375068cb",
+    "fontBitmapSha256": "ac3f74b72bede216a4a9cd0e328ee17f85c2123dc35298782845937805ddbd07",
+    "publishedTranscriptSetSha256": "670883c3731e8daf3c088e86cb9156c76692ed02ec07e695a37ea9dac92389ac",
+    "captureWorkflowBlobSha": "5e67a410bc86c53f3241079d8e7e89d1075b5c88",
+    "captureScriptPath": ".github/issue-16-capture.sh",
+    "captureScriptBlobSha": "d527b6b1ee27ddb0fa62a203675509f82e116a17"
+  }
 }

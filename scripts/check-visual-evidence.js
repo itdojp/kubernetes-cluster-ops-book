@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
+const { renderVisualEvidence, transcriptSetSha256 } = require('./render-visual-evidence');
 
 const EXPECTED = [
   ['ch00-change-record', 'chapter00', 'ch00-change-record-gate-01.png'],
@@ -213,6 +214,36 @@ function workflowRunsCommand(workflow, command) {
   return eligible();
 }
 
+function workflowJobBlock(workflow, jobName) {
+  const lines = workflow.replace(/\r\n/g, '\n').split('\n');
+  let jobsFound = false;
+  let start = null;
+  let blockScalarIndent = null;
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const indent = line.match(/^\s*/)[0].length;
+    if (blockScalarIndent !== null) {
+      if (!line.trim() || indent > blockScalarIndent) continue;
+      blockScalarIndent = null;
+    }
+    if (/^\s*[^#].*:\s*[|>][0-9+-]*\s*(?:#.*)?$/.test(line)) blockScalarIndent = indent;
+    if (!jobsFound) {
+      if (/^jobs:\s*$/.test(line)) jobsFound = true;
+      continue;
+    }
+    if (line.trim() && indent === 0) break;
+    const job = line.match(/^  ([A-Za-z0-9_-]+):\s*$/);
+    if (!job) continue;
+    if (start !== null) return lines.slice(start, index).join('\n');
+    if (job[1] === jobName) start = index;
+  }
+  return start === null ? null : lines.slice(start).join('\n');
+}
+
+function jobIsUnconditional(jobBlock) {
+  return jobBlock && !/^    (?:if|continue-on-error)\s*:/m.test(jobBlock);
+}
+
 function validateVisualEvidence(repoRoot = path.resolve(__dirname, '..')) {
   const errors = [];
   const sourceManifestPath = path.join(repoRoot, 'src/assets/visual-evidence/manifest.json');
@@ -233,13 +264,22 @@ function validateVisualEvidence(repoRoot = path.resolve(__dirname, '..')) {
   if (!packageJson.scripts?.test?.includes('npm run check:visual-evidence')) errors.push('package.json test must run check:visual-evidence');
   try {
     const workflow = fs.readFileSync(path.join(repoRoot, '.github/workflows/book-qa.yml'), 'utf8');
-    if (!workflowRunsCommand(workflow, 'npm test')) errors.push('Book QA must run the local visual-evidence contract through npm test');
+    const qaJob = workflowJobBlock(workflow, 'qa');
+    if (!qaJob) errors.push('Book QA must define the qa job');
+    else {
+      if (!jobIsUnconditional(qaJob)) errors.push('Book QA qa job must not have job-level if or continue-on-error');
+      if (!workflowRunsCommand(qaJob, 'npm test')) errors.push('Book QA must run the local visual-evidence contract through npm test');
+      if (!workflowRunsCommand(qaJob, 'npm run check:capture-provenance')) errors.push('Book QA must verify the immutable capture run through check:capture-provenance');
+    }
   } catch (error) {
     errors.push('.github/workflows/book-qa.yml is missing');
   }
   try {
     const policy = fs.readFileSync(path.join(repoRoot, 'SCREENSHOTS.md'), 'utf8');
-    for (const marker of ['src/assets/visual-evidence/manifest.json', 'npm run check:visual-evidence', 'raw transcript']) {
+    for (const marker of [
+      'src/assets/visual-evidence/manifest.json', 'npm run check:visual-evidence', 'npm run check:capture-provenance',
+      'scripts/render-visual-evidence.js', 'raw transcript',
+    ]) {
       if (!policy.includes(marker)) errors.push(`SCREENSHOTS.md must document ${marker}`);
     }
   } catch (error) {
@@ -262,6 +302,32 @@ function validateVisualEvidence(repoRoot = path.resolve(__dirname, '..')) {
   }
   if (!/^https:\/\/github\.com\/itdojp\/kubernetes-cluster-ops-book\/actions\/runs\/\d+$/.test(manifest.captureRun || '')) {
     errors.push('manifest captureRun must identify the successful isolated capture run');
+  }
+  const attestation = manifest.captureAttestation || {};
+  const expectedAttestation = {
+    repository: 'itdojp/kubernetes-cluster-ops-book', runId: 29956126898,
+    runUrl: 'https://github.com/itdojp/kubernetes-cluster-ops-book/actions/runs/29956126898',
+    workflowName: 'Temporary Issue 16 visual evidence capture', workflowPath: '.github/workflows/issue-16-capture.yml',
+    event: 'push', headBranch: 'codex/issue-16-capture', headSha: '035e378825b79e45850c4f7f12ab84877f6f9038',
+    captureWorkflowBlobSha: '5e67a410bc86c53f3241079d8e7e89d1075b5c88',
+    captureScriptPath: '.github/issue-16-capture.sh', captureScriptBlobSha: 'd527b6b1ee27ddb0fa62a203675509f82e116a17',
+    runAttempt: 1, status: 'completed', conclusion: 'success', artifactName: 'issue-16-sanitized-transcripts',
+    artifactId: 8544117974, artifactSizeBytes: 6620,
+    artifactSha256: 'e529d9e6967dc1fdca3fafdfa6ab23ee9fb54e1141c43ab43b341783d6639da7',
+    artifactDeletedAfterVerification: true, sourceTranscriptCount: 14,
+  };
+  for (const [key, expected] of Object.entries(expectedAttestation)) {
+    if (attestation[key] !== expected) errors.push(`capture attestation ${key} differs from the reviewed successful run`);
+  }
+  if (manifest.captureRun !== attestation.runUrl) errors.push('captureRun and captureAttestation.runUrl must match');
+  if (attestation.publishedTranscriptSetSha256 !== transcriptSetSha256(entries)) errors.push('published transcript-set SHA-256 differs from the capture attestation');
+  try {
+    const rendererHash = crypto.createHash('sha256').update(fs.readFileSync(path.join(repoRoot, 'scripts/render-visual-evidence.js'))).digest('hex');
+    const fontHash = crypto.createHash('sha256').update(fs.readFileSync(path.join(repoRoot, 'scripts/visual-evidence-font.json'))).digest('hex');
+    if (attestation.rendererSha256 !== rendererHash) errors.push('capture attestation renderer SHA-256 differs from the reviewed renderer');
+    if (attestation.fontBitmapSha256 !== fontHash) errors.push('capture attestation font bitmap SHA-256 differs from the reviewed font');
+  } catch (error) {
+    errors.push(`deterministic renderer contract is missing: ${error.message}`);
   }
   if (entries.length !== EXPECTED.length) errors.push(`manifest entry count: expected ${EXPECTED.length}, got ${entries.length}`);
 
@@ -301,6 +367,12 @@ function validateVisualEvidence(repoRoot = path.resolve(__dirname, '..')) {
       return;
     }
     if (!sourceBuffer.equals(docsBuffer)) errors.push(`${label}: generated docs PNG must exactly match canonical src PNG`);
+    try {
+      const deterministic = renderVisualEvidence(entry);
+      if (!sourceBuffer.equals(deterministic.buffer)) errors.push(`${label}: PNG raster/encoding must be the deterministic rendering of the checked transcript`);
+    } catch (error) {
+      errors.push(`${label}: deterministic rendering failed (${error.message})`);
+    }
     if (sourceBuffer.length >= MAX_FILE_BYTES) errors.push(`${label}: image is ${sourceBuffer.length} bytes; must be below ${MAX_FILE_BYTES}`);
     const dimensions = decodePng(sourceBuffer);
     if (dimensions.error) {

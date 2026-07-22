@@ -36,6 +36,29 @@ function insertBeforeIend(png, chunk) {
   return Buffer.concat([png.subarray(0, -12), chunk, png.subarray(-12)]);
 }
 
+function mutateFirstRasterByte(png) {
+  const signature = png.subarray(0, 8);
+  const chunks = [];
+  const imageData = [];
+  let offset = 8;
+  while (offset < png.length) {
+    const length = png.readUInt32BE(offset);
+    const type = png.subarray(offset + 4, offset + 8).toString('ascii');
+    const end = offset + 12 + length;
+    if (type === 'IDAT') imageData.push(png.subarray(offset + 8, offset + 8 + length));
+    else chunks.push({ type, buffer: png.subarray(offset, end) });
+    offset = end;
+  }
+  const pixels = zlib.inflateSync(Buffer.concat(imageData));
+  pixels[1] ^= 1;
+  const output = [signature];
+  for (const chunk of chunks) {
+    if (chunk.type === 'IEND') output.push(pngChunk('IDAT', zlib.deflateSync(pixels, { level: 9 })));
+    output.push(chunk.buffer);
+  }
+  return Buffer.concat(output);
+}
+
 function expectFailure(name, evidence, mutate, restore) {
   try {
     mutate();
@@ -72,7 +95,10 @@ function expectFailureWhenSupported(name, evidence, mutate, restore) {
   }
 }
 
-for (const item of ['src', 'docs', 'package.json', 'SCREENSHOTS.md', '.github/workflows/book-qa.yml']) copy(item);
+for (const item of [
+  'src', 'docs', 'package.json', 'SCREENSHOTS.md', '.github/workflows/book-qa.yml',
+  'scripts/render-visual-evidence.js', 'scripts/visual-evidence-font.json',
+]) copy(item);
 const baselineManifest = fs.readFileSync(manifestPath, 'utf8');
 let passed = 0;
 let skipped = 0;
@@ -96,6 +122,18 @@ try {
       () => fs.copyFileSync(path.join(repoRoot, '.github/workflows/book-qa.yml'), path.join(fixtureRoot, '.github/workflows/book-qa.yml'))],
     ['failure-tolerant Book QA step', 'Book QA must run the local visual-evidence contract through npm test',
       () => { const p = path.join(fixtureRoot, '.github/workflows/book-qa.yml'); const v = fs.readFileSync(p, 'utf8'); fs.writeFileSync(p, v.replace('run: npm test', 'continue-on-error: true\n        run: npm test')); },
+      () => fs.copyFileSync(path.join(repoRoot, '.github/workflows/book-qa.yml'), path.join(fixtureRoot, '.github/workflows/book-qa.yml'))],
+    ['conditional Book QA job', 'Book QA qa job must not have job-level if or continue-on-error',
+      () => { const p = path.join(fixtureRoot, '.github/workflows/book-qa.yml'); const v = fs.readFileSync(p, 'utf8'); fs.writeFileSync(p, v.replace('  qa:\n', '  qa:\n    if: ${{ false }}\n')); },
+      () => fs.copyFileSync(path.join(repoRoot, '.github/workflows/book-qa.yml'), path.join(fixtureRoot, '.github/workflows/book-qa.yml'))],
+    ['failure-tolerant Book QA job', 'Book QA qa job must not have job-level if or continue-on-error',
+      () => { const p = path.join(fixtureRoot, '.github/workflows/book-qa.yml'); const v = fs.readFileSync(p, 'utf8'); fs.writeFileSync(p, v.replace('  qa:\n', '  qa:\n    continue-on-error: true\n')); },
+      () => fs.copyFileSync(path.join(repoRoot, '.github/workflows/book-qa.yml'), path.join(fixtureRoot, '.github/workflows/book-qa.yml'))],
+    ['capture provenance integration drift', 'Book QA must verify the immutable capture run through check:capture-provenance',
+      () => { const p = path.join(fixtureRoot, '.github/workflows/book-qa.yml'); const v = fs.readFileSync(p, 'utf8'); fs.writeFileSync(p, v.replace('run: npm run check:capture-provenance', 'run: npm run build')); },
+      () => fs.copyFileSync(path.join(repoRoot, '.github/workflows/book-qa.yml'), path.join(fixtureRoot, '.github/workflows/book-qa.yml'))],
+    ['conditional capture provenance step', 'Book QA must verify the immutable capture run through check:capture-provenance',
+      () => { const p = path.join(fixtureRoot, '.github/workflows/book-qa.yml'); const v = fs.readFileSync(p, 'utf8'); fs.writeFileSync(p, v.replace('run: npm run check:capture-provenance', 'if: ${{ false }}\n        run: npm run check:capture-provenance')); },
       () => fs.copyFileSync(path.join(repoRoot, '.github/workflows/book-qa.yml'), path.join(fixtureRoot, '.github/workflows/book-qa.yml'))],
     ['missing manifest entry', 'manifest entry count',
       () => { const m = readManifest(); m.entries.pop(); writeManifest(m); },
@@ -121,6 +159,12 @@ try {
     ['caption loses date', 'caption must include capture date',
       () => { const m = readManifest(); m.entries[0].caption = '判断だけを示す'; writeManifest(m); },
       () => fs.writeFileSync(manifestPath, baselineManifest)],
+    ['capture run attestation drift', 'capture attestation runId differs',
+      () => { const m = readManifest(); m.captureAttestation.runId += 1; writeManifest(m); },
+      () => fs.writeFileSync(manifestPath, baselineManifest)],
+    ['renderer source drift', 'renderer SHA-256 differs',
+      () => { const p = path.join(fixtureRoot, 'scripts/render-visual-evidence.js'); fs.appendFileSync(p, '\n// drift\n'); },
+      () => fs.copyFileSync(path.join(repoRoot, 'scripts/render-visual-evidence.js'), path.join(fixtureRoot, 'scripts/render-visual-evidence.js'))],
   ];
   for (const [name, evidence, mutate, restore] of cases) {
     expectFailure(name, evidence, mutate, restore);
@@ -195,6 +239,22 @@ try {
   expectFailure('data after IEND', 'data remains after IEND',
     () => fs.writeFileSync(sourceImage, Buffer.concat([baselineImage, Buffer.from('trailing')])),
     () => fs.writeFileSync(sourceImage, baselineImage));
+  passed += 1;
+  expectFailure('visible raster tampering', 'PNG raster/encoding must be the deterministic rendering',
+    () => {
+      const mutated = mutateFirstRasterByte(baselineImage);
+      fs.writeFileSync(sourceImage, mutated);
+      fs.writeFileSync(docsImage, mutated);
+      const m = readManifest();
+      m.entries[0].bytes = mutated.length;
+      m.entries[0].sha256 = crypto.createHash('sha256').update(mutated).digest('hex');
+      writeManifest(m);
+    },
+    () => {
+      fs.writeFileSync(sourceImage, baselineImage);
+      fs.writeFileSync(docsImage, baselineDocsImage);
+      fs.writeFileSync(manifestPath, baselineManifest);
+    });
   passed += 1;
   expectFailure('unrecognized PNG text metadata', 'unrecognized PNG tEXt keyword',
     () => {

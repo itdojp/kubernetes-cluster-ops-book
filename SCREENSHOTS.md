@@ -62,6 +62,8 @@
 - 正本inventoryは `src/assets/visual-evidence/manifest.json` です。撮影run、取得日/JST、環境/version、source command、mask項目、表示transcript、PNG hash/dimension/sizeを記録します。
 - raw transcript、kubeconfig、credential、disposable clusterは公開・commitしません。公開するのは機微情報検査済みのtranscriptを描画したPNGとmanifestだけです。
 - `npm run check:visual-evidence` は固定14点、src/docs同期、参照、alt/即時caption、PNG metadata/CRC/decode/hash、重複、機微情報、responsive CSS、Book QA integrationをfail-closedで検査します。
+- PNGは、機微情報検査対象のmanifest transcriptだけを可変入力とする `scripts/render-visual-evidence.js` で決定的に生成します。validatorはPNG全byteを再生成して比較するため、manifest外の文字・pixelを後から画像へ混入できません。
+- Book QAの `npm run check:capture-provenance` はGitHub APIでcapture run、repository、head commit、workflow/script blob、job/step成功、artifact cleanupを再確認します。artifact digestと公開transcript集合hashはmanifestのattestationへ固定します。
 - 合成したoperational stateやplaceholderを実行証跡として扱いません。真正な出力を取得できない場合は画像を作らず、blockerと再取得条件をIssueへ残します。
 
 方針:
