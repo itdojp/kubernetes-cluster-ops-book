@@ -559,7 +559,7 @@
       "normalize line endings",
       "deterministically render checked transcript"
     ],
-    "rendererSha256": "17bd46c3b6e755413e3d28550995ee0c46e8e2b3d272e58285b5e299375068cb",
+    "rendererSha256": "d86f20ca9086758832b777b23611c45c26b8f287ab1fea317c1cbdb35faa883a",
     "fontBitmapSha256": "ac3f74b72bede216a4a9cd0e328ee17f85c2123dc35298782845937805ddbd07",
     "publishedTranscriptSetSha256": "670883c3731e8daf3c088e86cb9156c76692ed02ec07e695a37ea9dac92389ac",
     "captureWorkflowBlobSha": "5e67a410bc86c53f3241079d8e7e89d1075b5c88",

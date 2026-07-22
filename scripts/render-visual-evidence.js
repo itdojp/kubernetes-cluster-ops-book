@@ -50,7 +50,8 @@ function pngChunk(type, data) {
 function textChunk(keyword, value) {
   const key = Buffer.from(keyword, 'latin1');
   const text = Buffer.from(value, 'latin1');
-  if (key.length < 1 || key.length > 79 || key.includes(0) || text.length !== value.length) {
+  if (key.length < 1 || key.length > 79 || key.includes(0) || text.includes(0)
+      || key.toString('latin1') !== keyword || text.toString('latin1') !== value) {
     throw new Error(`PNG tEXt value is not Latin-1 safe: ${keyword}`);
   }
   return pngChunk('tEXt', Buffer.concat([key, Buffer.from([0]), text]));
@@ -182,4 +183,4 @@ if (require.main === module) {
   }
   writeRepositoryEvidence(path.resolve(__dirname, '..'));
 }
-module.exports = { renderVisualEvidence, transcriptSetSha256 };
+module.exports = { renderVisualEvidence, textChunk, transcriptSetSha256 };

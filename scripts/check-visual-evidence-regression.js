@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 const { crc32, validateVisualEvidence } = require('./check-visual-evidence');
+const { textChunk } = require('./render-visual-evidence');
 
 const repoRoot = path.resolve(__dirname, '..');
 const cacheRoot = path.join(repoRoot, 'node_modules', '.cache');
@@ -95,6 +96,15 @@ function expectFailureWhenSupported(name, evidence, mutate, restore) {
   }
 }
 
+function expectThrow(name, evidence, operation) {
+  try {
+    operation();
+    throw new Error(`${name}: expected an exception containing ${JSON.stringify(evidence)}`);
+  } catch (error) {
+    if (!error.message.includes(evidence)) throw error;
+  }
+}
+
 // Keep the mutation fixture proportional to the visual-evidence contract rather
 // than to the size of the whole book. The validator reads these chapter,
 // inventory, policy, workflow, and rendering paths only.
@@ -109,6 +119,14 @@ let passed = 0;
 let skipped = 0;
 
 try {
+  for (const [name, keyword, value] of [
+    ['non-Latin-1 tEXt value', 'evidence', 'snowman \u2603'],
+    ['NUL in tEXt value', 'evidence', 'prefix\0suffix'],
+    ['non-Latin-1 tEXt keyword', 'evidence-\u2603', 'value'],
+  ]) {
+    expectThrow(name, 'not Latin-1 safe', () => textChunk(keyword, value));
+    passed += 1;
+  }
   const cases = [
     ['package integration drift', 'complete check:visual-evidence contract',
       () => { const p = path.join(fixtureRoot, 'package.json'); const v = JSON.parse(fs.readFileSync(p)); v.scripts['check:visual-evidence'] = 'true'; fs.writeFileSync(p, `${JSON.stringify(v, null, 2)}\n`); },
