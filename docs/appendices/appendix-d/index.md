@@ -7,7 +7,7 @@ title: "付録D：図表索引"
 
 本付録は、公開本文で実際に参照している14点のP0 visual evidenceだけを対象にします。各図版は2026-07-23（JST）に隔離したdisposable kind環境または同一capture run内の検証fixtureから取得した実行結果であり、合成したoperational stateではありません。対象クラスタ、Kubernetes version、認証・認可設定により出力は異なるため、実環境では本文の判断手順と現在の一次情報を併せて確認してください。
 
-正本inventory、capture provenance、sanitization項目、source command、hashは [`src/assets/visual-evidence/manifest.json`](https://github.com/itdojp/kubernetes-cluster-ops-book/blob/main/src/assets/visual-evidence/manifest.json) で管理します。
+正本inventory、capture provenance、sanitization項目、source command、hashは [`assets/visual-evidence/manifest.json`](../../assets/visual-evidence/manifest.json) で管理します。
 
 ## 図表一覧
 
